@@ -1,9 +1,18 @@
-"use client"
-
-import { useState } from "react"
-import { Package, MapPin, History, Settings, LogOut, ChevronDown, ChevronRight, PanelLeftClose, PanelLeft } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import { useState } from "react";
+import {
+  Package,
+  MapPin,
+  History,
+  Settings,
+  LogOut,
+  ChevronDown,
+  ChevronRight,
+  PanelLeftClose,
+  PanelLeft,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { useLogto } from "@logto/react";
 
 const categories = [
   { id: "electronics", label: "Electronics" },
@@ -11,23 +20,37 @@ const categories = [
   { id: "home", label: "Home & Garden" },
   { id: "sports", label: "Sports & Outdoors" },
   { id: "beauty", label: "Beauty & Health" },
-]
+];
 
 const navItems = [
   { icon: MapPin, label: "Saved Addresses", color: "text-muted-foreground" },
   { icon: History, label: "Order History", color: "text-muted-foreground" },
   { icon: Settings, label: "Settings", color: "text-muted-foreground" },
-]
+];
 
 interface SidebarNavProps {
-  isCollapsed: boolean
-  onToggle: () => void
-  selectedCategory: string | null
-  onSelectCategory: (category: string | null) => void
+  isCollapsed: boolean;
+  onToggle: () => void;
+  selectedCategory: string | null;
+  onSelectCategory: (category: string | null) => void;
 }
 
-export function SidebarNav({ isCollapsed, onToggle, selectedCategory, onSelectCategory }: SidebarNavProps) {
-  const [isCategoriesOpen, setIsCategoriesOpen] = useState(true)
+export function SidebarNav({
+  isCollapsed,
+  onToggle,
+  selectedCategory,
+  onSelectCategory,
+}: SidebarNavProps) {
+  const [isCategoriesOpen, setIsCategoriesOpen] = useState(true);
+  const { signIn, signOut, isAuthenticated, isLoading } = useLogto();
+
+  const handleAuthAction = () => {
+    if (isAuthenticated) {
+      signOut(window.location.origin);
+    } else {
+      signIn(window.location.origin + "/callback");
+    }
+  };
 
   if (isCollapsed) {
     return (
@@ -40,16 +63,30 @@ export function SidebarNav({ isCollapsed, onToggle, selectedCategory, onSelectCa
             <Package className="h-5 w-5" />
           </Button>
           {navItems.map((item, index) => (
-            <Button key={index} variant="ghost" size="icon" className={item.color}>
+            <Button
+              key={index}
+              variant="ghost"
+              size="icon"
+              className={item.color}
+            >
               <item.icon className="h-5 w-5" />
             </Button>
           ))}
         </div>
-        <Button variant="ghost" size="icon" className="mt-auto mb-4 text-muted-foreground">
+        <Button
+          variant="ghost"
+          size="icon"
+          className={cn(
+            "mt-auto mb-4",
+            isAuthenticated ? "text-destructive" : "text-primary",
+          )}
+          onClick={handleAuthAction}
+          disabled={isLoading}
+        >
           <LogOut className="h-5 w-5" />
         </Button>
       </div>
-    )
+    );
   }
 
   return (
@@ -59,7 +96,7 @@ export function SidebarNav({ isCollapsed, onToggle, selectedCategory, onSelectCa
           <PanelLeftClose className="h-5 w-5" />
         </Button>
       </div>
-      
+
       <nav className="space-y-1 flex-1">
         <Button
           variant="ghost"
@@ -74,7 +111,7 @@ export function SidebarNav({ isCollapsed, onToggle, selectedCategory, onSelectCa
             <ChevronRight className="ml-auto h-4 w-4" />
           )}
         </Button>
-        
+
         {isCategoriesOpen && (
           <div className="ml-10 space-y-1">
             <Button
@@ -82,7 +119,9 @@ export function SidebarNav({ isCollapsed, onToggle, selectedCategory, onSelectCa
               size="sm"
               className={cn(
                 "w-full justify-start text-sm",
-                selectedCategory === null ? "bg-accent text-accent-foreground" : "text-muted-foreground"
+                selectedCategory === null
+                  ? "bg-accent text-accent-foreground"
+                  : "text-muted-foreground",
               )}
               onClick={() => onSelectCategory(null)}
             >
@@ -95,7 +134,9 @@ export function SidebarNav({ isCollapsed, onToggle, selectedCategory, onSelectCa
                 size="sm"
                 className={cn(
                   "w-full justify-start text-sm",
-                  selectedCategory === category.id ? "bg-accent text-accent-foreground" : "text-muted-foreground"
+                  selectedCategory === category.id
+                    ? "bg-accent text-accent-foreground"
+                    : "text-muted-foreground",
                 )}
                 onClick={() => onSelectCategory(category.id)}
               >
@@ -104,19 +145,33 @@ export function SidebarNav({ isCollapsed, onToggle, selectedCategory, onSelectCa
             ))}
           </div>
         )}
-        
+
         {navItems.map((item, index) => (
-          <Button key={index} variant="ghost" className={`w-full justify-start ${item.color}`}>
+          <Button
+            key={index}
+            variant="ghost"
+            className={`w-full justify-start ${item.color}`}
+          >
             <item.icon className="mr-2 h-4 w-4" />
             {item.label}
           </Button>
         ))}
       </nav>
-      
-      <Button variant="ghost" className="w-full justify-start text-muted-foreground">
+
+      <Button
+        variant="ghost"
+        className={cn(
+          "w-full justify-start mt-auto",
+          isAuthenticated
+            ? "text-destructive hover:bg-destructive/10"
+            : "text-primary hover:bg-primary/10",
+        )}
+        onClick={handleAuthAction}
+        disabled={isLoading}
+      >
         <LogOut className="mr-2 h-4 w-4" />
-        Logout
+        {isLoading ? "Processing..." : isAuthenticated ? "Log Out" : "Log In"}
       </Button>
     </div>
-  )
+  );
 }
