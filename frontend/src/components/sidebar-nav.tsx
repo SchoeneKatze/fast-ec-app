@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useLogto } from "@logto/react";
+
 
 const categories = [
   { id: "electronics", label: "Electronics" },
@@ -33,6 +33,10 @@ interface SidebarNavProps {
   onToggle: () => void;
   selectedCategory: string | null;
   onSelectCategory: (category: string | null) => void;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  handleAuthAction: () => void
+  showAfterLogin: boolean
 }
 
 export function SidebarNav({
@@ -40,21 +44,15 @@ export function SidebarNav({
   onToggle,
   selectedCategory,
   onSelectCategory,
+  isAuthenticated,
+  isLoading,
+  handleAuthAction,
+  showAfterLogin
 }: SidebarNavProps) {
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(true);
-  const { signIn, signOut, isAuthenticated, isLoading } = useLogto();
-
-  const handleAuthAction = () => {
-    if (isAuthenticated) {
-      signOut(window.location.origin);
-    } else {
-      signIn(window.location.origin + "/callback");
-    }
-  };
-
   if (isCollapsed) {
     return (
-      <div className="w-16 p-2 border-r flex flex-col items-center bg-background">
+      <div className="w-16 p-2 border-r flex flex-col items-center bg-background shrink-0">
         <Button variant="ghost" size="icon" onClick={onToggle} className="mb-4">
           <PanelLeft className="h-5 w-5" />
         </Button>
@@ -90,7 +88,7 @@ export function SidebarNav({
   }
 
   return (
-    <div className="w-64 p-4 border-r flex flex-col bg-background">
+    <div className="w-64 p-4 border-r flex flex-col bg-background shrink-0">
       <div className="flex items-center justify-end mb-4">
         <Button variant="ghost" size="icon" onClick={onToggle}>
           <PanelLeftClose className="h-5 w-5" />
@@ -151,6 +149,7 @@ export function SidebarNav({
             key={index}
             variant="ghost"
             className={`w-full justify-start ${item.color}`}
+            disabled={!showAfterLogin}
           >
             <item.icon className="mr-2 h-4 w-4" />
             {item.label}

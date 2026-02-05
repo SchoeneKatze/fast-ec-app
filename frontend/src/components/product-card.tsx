@@ -1,16 +1,27 @@
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Minus, Plus, Package, ShoppingCart } from "lucide-react"
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Minus, Plus, Package, ShoppingCart } from "lucide-react";
+import { useState } from "react";
 
 interface ProductCardProps {
-  title: string
-  price: number
-  discount?: number
-  category: string
+  // productId: string;
+  title: string;
+  price: number;
+  discount?: number;
+  category: string;
 }
 
 export function ProductCard({ title, price, discount }: ProductCardProps) {
-  const discountedPrice = discount ? price * (1 - discount / 100) : price
+  const discountedPrice = discount ? price * (1 - discount / 100) : price;
+
+
+  const [productAmount, setProductAmount] = useState(1);
+  const plusAmount = () => {
+    setProductAmount((prev) => (prev + 1));
+  };
+  const minusAmount = () => {
+    setProductAmount((prev) => (prev - 1));
+  };
 
   return (
     <Card className="overflow-hidden bg-background">
@@ -27,17 +38,34 @@ export function ProductCard({ title, price, discount }: ProductCardProps) {
       <div className="p-3">
         <h3 className="text-sm font-medium mb-1 line-clamp-2">{title}</h3>
         <div className="flex items-center gap-2 mb-3">
-          <span className="text-primary font-bold">${discountedPrice.toFixed(2)}</span>
+          <span className="text-primary font-bold">
+            ${discountedPrice.toFixed(2)}
+          </span>
           {discount && (
-            <span className="text-xs text-muted-foreground line-through">${price.toFixed(2)}</span>
+            <span className="text-xs text-muted-foreground line-through">
+              ${price.toFixed(2)}
+            </span>
           )}
         </div>
         <div className="flex items-center justify-between mb-2">
-          <Button variant="outline" size="icon" className="rounded-full h-8 w-8 bg-transparent">
+          <Button
+            variant="outline"
+            size="icon"
+            className="rounded-full h-8 w-8 bg-transparent"
+            onClick={minusAmount}
+            disabled={productAmount <= 1}
+          >
             <Minus className="h-4 w-4" />
           </Button>
-          <span className="font-medium">1</span>
-          <Button variant="outline" size="icon" className="rounded-full h-8 w-8 bg-transparent">
+          <span id="productAmount" className="font-medium">
+            {productAmount}
+          </span>
+          <Button
+            variant="outline"
+            size="icon"
+            className="rounded-full h-8 w-8 bg-transparent"
+            onClick={plusAmount}
+          >
             <Plus className="h-4 w-4" />
           </Button>
         </div>
@@ -47,5 +75,5 @@ export function ProductCard({ title, price, discount }: ProductCardProps) {
         </Button>
       </div>
     </Card>
-  )
+  );
 }

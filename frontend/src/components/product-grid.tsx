@@ -1,4 +1,5 @@
 import { ProductCard } from "./product-card"
+import { useState, useEffect } from "react"
 
 const products = [
   {
