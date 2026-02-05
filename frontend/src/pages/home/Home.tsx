@@ -1,9 +1,9 @@
 import { useState } from "react"
 import { ShoppingBag } from "lucide-react"
-import { SidebarNav } from "../../components/sidebar-nav"
-import { Header } from "../../components/header"
-import { ProductGrid } from "../../components/product-grid"
-import { Cart } from "../../components/cart"
+import { SidebarNav } from "./sidebar-nav"
+import { Header } from "./header"
+import { ProductGrid } from "./product-grid"
+import { Cart } from "./cart"
 import { useLogto } from "@logto/react";
 
 export default function Home() {
