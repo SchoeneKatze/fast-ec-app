@@ -32,7 +32,6 @@ export function Cart({
   isCollapsed,
   onToggle,
   isAuthenticated,
-  isLoading,
   showAfterLogin
 }: CartProps) {
   const totalItems = cartItems.reduce((acc, item) => acc + item.quantity, 0);
