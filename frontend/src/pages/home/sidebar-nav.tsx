@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
 
 const categories = [
@@ -23,9 +24,9 @@ const categories = [
 ];
 
 const navItems = [
-  { icon: MapPin, label: "Saved Addresses", color: "text-muted-foreground" },
-  { icon: History, label: "Order History", color: "text-muted-foreground" },
-  { icon: Settings, label: "Settings", color: "text-muted-foreground" },
+  { icon: MapPin, label: "Saved Addresses", path: "/addresses", color: "text-muted-foreground" },
+  { icon: History, label: "Order History", path: "/orders", color: "text-muted-foreground" },
+  { icon: Settings, label: "Settings", path:"/settings", color: "text-muted-foreground" },
 ];
 
 interface SidebarNavProps {
@@ -49,6 +50,7 @@ export function SidebarNav({
   handleAuthAction,
   showAfterLogin
 }: SidebarNavProps) {
+  const navigate = useNavigate();
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(true);
   if (isCollapsed) {
     return (
@@ -150,6 +152,7 @@ export function SidebarNav({
             variant="ghost"
             className={`w-full justify-start ${item.color}`}
             disabled={!showAfterLogin}
+            onClick={() => navigate(item.path)}
           >
             <item.icon className="mr-2 h-4 w-4" />
             {item.label}

@@ -108,3 +108,8 @@ CREATE TABLE shipping_addresses (
     is_default BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (user_id) REFERENCES users(internal_id)
 );
+
+GRANT ALL PRIVILEGES ON fastec.* TO 'fast-ec-admin'@'%';
+FLUSH PRIVILEGES;
+
+

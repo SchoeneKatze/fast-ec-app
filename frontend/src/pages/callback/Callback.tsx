@@ -4,7 +4,7 @@ import { useEffect } from "react";
 
 const Callback = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, fetchUserInfo, getIdTokenClaims } = useLogto()
+  const { isAuthenticated, /*fetchUserInfo,*/ getIdTokenClaims } = useLogto()
   const { isLoading } = useHandleSignInCallback(() => {
 
     // navigate("/");
@@ -39,7 +39,7 @@ const Callback = () => {
       };
 
       syncUser();
-    }, [isAuthenticated, fetchUserInfo, navigate]);
+    }, [isAuthenticated, getIdTokenClaims, navigate]);
 
   // When it's working in progress
   if (isLoading) {
