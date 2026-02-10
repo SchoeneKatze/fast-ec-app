@@ -1,58 +1,149 @@
-import { useState } from "react"
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { format } from "date-fns"
+import { format } from "date-fns";
 import {
   Save,
   Bell,
   Shield,
-  Smartphone,
+  // Smartphone,
   Mail,
   Lock,
   Eye,
   EyeOff,
-  Upload,
+  // Upload,
   User,
   ArrowLeft,
   CalendarIcon,
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, /*CardTitle*/ } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
-import { Textarea } from "@/components/ui/textarea"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Calendar } from "@/components/ui/calendar"
-import { Separator } from "@/components/ui/separator"
-import { cn } from "@/lib/utils"
-import "./settings.css"
-
+  ShoppingBag,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader /*CardTitle*/,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+// import { Textarea } from "@/components/ui/textarea";
+// import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
+import { useLogto } from "@logto/react";
+import { useNavigate } from "react-router-dom";
+// import "./settings.css"
 
 export default function SettingsPage() {
-  const [showPassword, setShowPassword] = useState(false)
-  const [birthday, setBirthday] = useState<Date | undefined>(undefined)
+  const navigate = useNavigate();
+  const { isAuthenticated, /*fetchUserInfo,*/ getIdTokenClaims } = useLogto();
+  const [showPassword, setShowPassword] = useState(false);
+  const [nickname, setNickname] = useState("");
+  const [gender, setGender] = useState("");
+  const [birthday, setBirthday] = useState<Date | undefined>(undefined);
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [notifications, setNotifications] = useState({
     email: true,
     push: false,
     sms: false,
-  })
+  });
 
   const handleNotificationChange = (key: string, value: boolean) => {
-    setNotifications((prev) => ({ ...prev, [key]: value }))
-  }
+    setNotifications((prev) => ({ ...prev, [key]: value }));
+  };
+
+  useEffect(() => {
+    const initData = async () => {
+      try {
+        const claims = await getIdTokenClaims();
+        if (claims?.sub) {
+          const res = await fetch(
+            `http://127.0.0.1:8000/auth/me?logto_id=${claims.sub}`,
+          );
+          if (res.ok) {
+            const user_me = await res.json();
+            setNickname(user_me.nickname || "");
+            setGender(user_me.gender || "male");
+            setEmail(user_me.email || "");
+            setPhone(user_me.phone_no || "");
+            if (user_me.birthday) setBirthday(new Date(user_me.birthday));
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load user data", err);
+      }
+    };
+
+    if (isAuthenticated) initData();
+  }, [isAuthenticated, getIdTokenClaims]);
+
+  const updateUser = async () => {
+    if (isAuthenticated) {
+      try {
+        const claims = await getIdTokenClaims();
+        console.log("Logto claims:", claims);
+
+        if (claims) {
+          const response = await fetch(
+            "http://127.0.0.1:8000/auth/updateUser",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                logto_id: claims.sub,
+                nickname: nickname,
+                gender: gender,
+                birthday: birthday ? format(birthday, "yyyy-MM-dd") : null,
+                phone_no: phone,
+              }),
+            },
+          );
+
+          if (response.ok) {
+            const responseUserJsonFromBackend = await response.json();
+            console.log(responseUserJsonFromBackend);
+
+            navigate("/settings");
+          }
+        }
+      } catch (error) {
+        console.log("User update failed", error);
+      }
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-muted/40">
+    <div className="flex flex-col h-screen bg-muted">
+      {/* Fixed Header with Logo */}
+      <div className="flex items-center border-b bg-background">
+        <div className="flex items-center gap-2 px-4 py-3 border-r w-fit shrink-0">
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+            <ShoppingBag className="w-5 h-5 text-primary-foreground" />
+          </div>
+          <span className="font-semibold">MyShop</span>
+        </div>
+      </div>
+
       <div className="mx-auto max-w-3xl px-4 py-10">
         {/* Page Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-semibold text-foreground">Settings</h1>
-            <p className="text-muted-foreground mt-1">
-              Manage your account preferences and configuration
-            </p>
+            <p className="text-muted-foreground mt-1">Account Management</p>
           </div>
           <Button variant="outline" asChild className="gap-2 bg-transparent">
             <Link to="/">
@@ -67,16 +158,16 @@ export default function SettingsPage() {
           <section>
             <div className="flex items-center gap-2 mb-4">
               <User className="w-5 h-5 text-muted-foreground" />
-              <h2 className="text-lg font-semibold text-foreground">Profile Information</h2>
+              <h2 className="text-lg font-semibold text-foreground">
+                Profile Information
+              </h2>
             </div>
             <Card>
               <CardHeader>
-                <CardDescription>
-                  Update your personal information and profile settings
-                </CardDescription>
+                <CardDescription>Personal information</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="flex items-center gap-6">
+                {/* <div className="flex items-center gap-6">
                   <Avatar className="w-20 h-20">
                     <AvatarImage src="/placeholder.svg?height=80&width=80" />
                     <AvatarFallback className="text-lg">AE</AvatarFallback>
@@ -90,19 +181,23 @@ export default function SettingsPage() {
                       JPG, PNG or GIF. Max size 2MB.
                     </p>
                   </div>
-                </div>
+                </div> */}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="nickname">Nickname</Label>
-                    <Input id="nickname" defaultValue="Alex Evans" />
+                    <Input
+                      id="nickname"
+                      value={nickname}
+                      onChange={(e) => setNickname(e.target.value)}
+                    />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="gender">Gender</Label>
-                    <Select defaultValue="male">
+                    <Select value={gender} onValueChange={setGender}>
                       <SelectTrigger id="gender">
                         <SelectValue placeholder="Select gender" />
                       </SelectTrigger>
@@ -110,7 +205,9 @@ export default function SettingsPage() {
                         <SelectItem value="male">Male</SelectItem>
                         <SelectItem value="female">Female</SelectItem>
                         <SelectItem value="other">Other</SelectItem>
-                        <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
+                        <SelectItem value="prefer_not_to_say">
+                          Prefer not to say
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -122,11 +219,13 @@ export default function SettingsPage() {
                           variant="outline"
                           className={cn(
                             "w-full justify-start text-left font-normal bg-transparent",
-                            !birthday && "text-muted-foreground"
+                            !birthday && "text-muted-foreground",
                           )}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
-                          {birthday ? format(birthday, "yyyy-MM-dd") : "Select date"}
+                          {birthday
+                            ? format(birthday, "yyyy-MM-dd")
+                            : "Select date"}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
@@ -149,7 +248,9 @@ export default function SettingsPage() {
                   <Input
                     id="email"
                     type="email"
-                    defaultValue="alex@company.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled
                   />
                 </div>
 
@@ -158,11 +259,12 @@ export default function SettingsPage() {
                   <Input
                     id="phone"
                     type="tel"
-                    defaultValue="+1 (555) 123-4567"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
                   />
                 </div>
 
-                <div className="space-y-2">
+                {/* <div className="space-y-2">
                   <Label htmlFor="bio">Bio</Label>
                   <Textarea
                     id="bio"
@@ -170,10 +272,10 @@ export default function SettingsPage() {
                     defaultValue="Product manager passionate about automation and workflow optimization."
                     rows={3}
                   />
-                </div>
+                </div> */}
 
                 <div className="flex justify-start">
-                  <Button className="gap-2">
+                  <Button className="gap-2" onClick={updateUser}>
                     <Save className="w-4 h-4" />
                     Save Changes
                   </Button>
@@ -194,9 +296,7 @@ export default function SettingsPage() {
             </div>
             <Card>
               <CardHeader>
-                <CardDescription>
-                  Choose how you want to be notified about important events
-                </CardDescription>
+                <CardDescription>Choose how to be notified</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-4">
@@ -215,13 +315,14 @@ export default function SettingsPage() {
                         </div>
                       </div>
                       <Switch
+                        className="data-[state=checked]:bg-green-500"
                         checked={notifications.email}
                         onCheckedChange={(value) =>
                           handleNotificationChange("email", value)
                         }
                       />
                     </div>
-
+{/* 
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <Bell className="w-5 h-5 text-muted-foreground" />
@@ -233,6 +334,7 @@ export default function SettingsPage() {
                         </div>
                       </div>
                       <Switch
+                        className="data-[state=checked]:bg-[#10b981] data-[state=unchecked]:bg-gray-200"
                         checked={notifications.push}
                         onCheckedChange={(value) =>
                           handleNotificationChange("push", value)
@@ -256,16 +358,18 @@ export default function SettingsPage() {
                           handleNotificationChange("sms", value)
                         }
                       />
-                    </div>
+                    </div> */}
+
                   </div>
                 </div>
 
-                <div className="flex justify-start">
+                {/* <div className="flex justify-start">
                   <Button className="gap-2">
                     <Save className="w-4 h-4" />
                     Save Preferences
                   </Button>
-                </div>
+                </div> */}
+                
               </CardContent>
             </Card>
           </section>
@@ -283,7 +387,7 @@ export default function SettingsPage() {
             <Card>
               <CardHeader>
                 <CardDescription>
-                  Manage your account security and authentication
+                  Account security and authentication
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -340,13 +444,11 @@ export default function SettingsPage() {
                     </Button>
                   </div>
                 </div>
-
-
               </CardContent>
             </Card>
           </section>
         </div>
       </div>
     </div>
-  )
+  );
 }

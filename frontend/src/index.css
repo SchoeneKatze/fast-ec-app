@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
+/* :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -15,7 +15,7 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
+} */
 
 @layer base {
   :root {
@@ -58,7 +58,7 @@
   }
 }
 
-
+/*
 a {
   font-weight: 500;
   color: #646cff;
@@ -70,8 +70,6 @@ a:hover {
 
 body {
   margin: 0;
-  /* display: flex;
-  place-items: center; */
   min-width: 100%;
   min-height: 100vh;
 }
@@ -112,3 +110,4 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+*/
