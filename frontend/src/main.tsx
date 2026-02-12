@@ -4,10 +4,12 @@ import './index.css'
 import App from './App'
 import { LogtoProvider, type LogtoConfig } from "@logto/react";
 
+const endpoint = import.meta.env.VITE_LOGTO_ENDPOINT;
+const appId = import.meta.env.VITE_LOGTO_APP_ID;
+
 const config: LogtoConfig = {
-  endpoint: "https://xtt3qa.logto.app/",
-  appId: "wo9cmk4r0ex6oaqe51w8w",
-  scopes: ['email', 'profile'],
+  endpoint: endpoint,
+  appId: appId,
 };
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

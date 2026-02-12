@@ -2,3 +2,5 @@ python uvicorn app.main:app --reload
 
 C:\Users\gao.bo\MyFolder\fast-ec-app\backend\venv\Scripts\activate
 
+/api/users/{userId}/personal-access-tokens
+

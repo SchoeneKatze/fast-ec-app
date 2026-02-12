@@ -57,3 +57,4 @@ def update_user_info(update_user_info: schemas.UserUpdateRequest, db: Session):
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
+    

@@ -6,10 +6,10 @@ const Callback = () => {
   const navigate = useNavigate();
   const { isAuthenticated, /*fetchUserInfo,*/ getIdTokenClaims } = useLogto()
   const { isLoading } = useHandleSignInCallback(() => {
-
-    // navigate("/");
+     // navigate("/");
   });
-
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+  
   useEffect(() => {
     const syncUser = async() => {
       if (isAuthenticated) {
@@ -18,7 +18,7 @@ const Callback = () => {
           console.log("Logto claims:", claims);
             
           if (claims) {
-            const response = await fetch ("http://127.0.0.1:8000/auth/login", {
+            const response = await fetch (`${BACKEND_URL}/auth/login`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify ({
@@ -39,7 +39,7 @@ const Callback = () => {
       };
 
       syncUser();
-    }, [isAuthenticated, getIdTokenClaims, navigate]);
+    }, [isAuthenticated, getIdTokenClaims, navigate, BACKEND_URL]);
 
   // When it's working in progress
   if (isLoading) {

@@ -58,9 +58,13 @@ export default function SettingsPage() {
   const [phone, setPhone] = useState("");
   const [notifications, setNotifications] = useState({
     email: true,
-    push: false,
-    sms: false,
+    // push: false,
+    // sms: false,
   });
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
   const handleNotificationChange = (key: string, value: boolean) => {
     setNotifications((prev) => ({ ...prev, [key]: value }));
@@ -72,7 +76,7 @@ export default function SettingsPage() {
         const claims = await getIdTokenClaims();
         if (claims?.sub) {
           const res = await fetch(
-            `http://127.0.0.1:8000/auth/me?logto_id=${claims.sub}`,
+            `${BACKEND_URL}/auth/me?logto_id=${claims.sub}`,
           );
           if (res.ok) {
             const user_me = await res.json();
@@ -89,7 +93,7 @@ export default function SettingsPage() {
     };
 
     if (isAuthenticated) initData();
-  }, [isAuthenticated, getIdTokenClaims]);
+  }, [isAuthenticated, getIdTokenClaims, BACKEND_URL]);
 
   const updateUser = async () => {
     if (isAuthenticated) {
@@ -98,20 +102,17 @@ export default function SettingsPage() {
         console.log("Logto claims:", claims);
 
         if (claims) {
-          const response = await fetch(
-            "http://127.0.0.1:8000/auth/updateUser",
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                logto_id: claims.sub,
-                nickname: nickname,
-                gender: gender,
-                birthday: birthday ? format(birthday, "yyyy-MM-dd") : null,
-                phone_no: phone,
-              }),
-            },
-          );
+          const response = await fetch(`${BACKEND_URL}/auth/updateUser`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              logto_id: claims.sub,
+              nickname: nickname,
+              gender: gender,
+              birthday: birthday ? format(birthday, "yyyy-MM-dd") : null,
+              phone_no: phone,
+            }),
+          });
 
           if (response.ok) {
             const responseUserJsonFromBackend = await response.json();
@@ -121,7 +122,59 @@ export default function SettingsPage() {
           }
         }
       } catch (error) {
-        console.log("User update failed", error);
+        console.log("Password update failed", error);
+      }
+    }
+  };
+
+  const updatePassword = async () => {
+    if (isAuthenticated) {
+      if (currentPassword == confirmPassword) {
+        if (newPassword == currentPassword) alert("Same password!");
+        else {
+          try {
+            const claims = await getIdTokenClaims();
+            console.log("Logto claims:", claims);
+            if (claims) {
+              const verifyPasswordResponse = await fetch(
+                `${BACKEND_URL}/auth/verifyPassword`,
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    logto_id: claims.sub,
+                    newPassword: newPassword,
+                  }),
+                },
+              );
+              if (verifyPasswordResponse.ok) {
+                const response = await fetch(
+                  `${BACKEND_URL}/auth/updatePassword`,
+                  {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      logto_id: claims.sub,
+                      newPassword: newPassword,
+                      email: email
+                    }),
+                  },
+                );
+
+                if (response.ok) {
+                  const responseUserJsonFromBackend = await response.json();
+                  console.log(responseUserJsonFromBackend);
+
+                  navigate("/settings");
+                }
+              }
+            }
+          } catch (error) {
+            console.log("User update failed", error);
+          }
+        }
+      } else {
+        alert("");
       }
     }
   };
@@ -322,7 +375,7 @@ export default function SettingsPage() {
                         }
                       />
                     </div>
-{/* 
+                    {/* 
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <Bell className="w-5 h-5 text-muted-foreground" />
@@ -359,7 +412,6 @@ export default function SettingsPage() {
                         }
                       />
                     </div> */}
-
                   </div>
                 </div>
 
@@ -369,7 +421,6 @@ export default function SettingsPage() {
                     Save Preferences
                   </Button>
                 </div> */}
-                
               </CardContent>
             </Card>
           </section>
@@ -391,6 +442,16 @@ export default function SettingsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email Address</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+
                 <div className="space-y-4">
                   <h3 className="font-medium text-foreground">Password</h3>
                   <div className="space-y-4">
@@ -399,6 +460,8 @@ export default function SettingsPage() {
                       <div className="relative">
                         <Input
                           id="currentPassword"
+                          value={currentPassword}
+                          onChange={(e) => setCurrentPassword(e.target.value)}
                           type={showPassword ? "text" : "password"}
                           placeholder="Enter current password"
                         />
@@ -423,6 +486,8 @@ export default function SettingsPage() {
                       <Input
                         id="newPassword"
                         type="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
                         placeholder="Enter new password"
                       />
                     </div>
@@ -434,11 +499,13 @@ export default function SettingsPage() {
                       <Input
                         id="confirmPassword"
                         type="password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder="Confirm new password"
                       />
                     </div>
 
-                    <Button className="gap-2">
+                    <Button className="gap-2" onClick={updatePassword}>
                       <Lock className="w-4 h-4" />
                       Update Password
                     </Button>
