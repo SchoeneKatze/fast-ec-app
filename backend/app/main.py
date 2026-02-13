@@ -1,12 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.modules.users.router import router as user_router
-from dotenv import env
+from dotenv import load_dotenv
 import os
 
-app = FastAPI()
-env()
+load_dotenv()
 
+from app.modules.users.router import router as user_router
+
+app = FastAPI()
 origins = [
     os.getenv("DB_URL_LOCAL"),
     os.getenv("DB_URL"),

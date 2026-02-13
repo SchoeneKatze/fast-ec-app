@@ -3,6 +3,11 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from . import models, schemas
 from app.utils.utils import get_currency_by_ip
+import os,httpx
+
+LOGTO_ENDPOINT = os.getenv("LOGTO_ENDPOINT")
+LOGTO_APP_ID = os.getenv("LOGTO_APP_ID") 
+LOGTO_APP_SECRET = os.getenv("APP_SECRET")
 
 def login_and_register_user(login_data: schemas.LoginRequest, db: Session, user_ip_address: str):
 
@@ -58,3 +63,150 @@ def update_user_info(update_user_info: schemas.UserUpdateRequest, db: Session):
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
     
+async def verify_password(logto_id: str, currentPassword: str):
+    print(f"DEBUG: LOGTO_ENDPOINT is '{LOGTO_ENDPOINT}'")
+    async with httpx.AsyncClient() as client:
+        # --- 第一步：获取管理权限的 Access Token ---
+        # 这一步不需要 Logto_id，需要的是你的 App ID 和 Secret
+        token_response = await client.post(
+            f"{LOGTO_ENDPOINT}/oidc/token",
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            data={
+                "grant_type": "client_credentials",
+                "resource": f"{LOGTO_ENDPOINT}/api", # 声明你要访问管理 API
+                "scope": "all",
+                "client_id": LOGTO_APP_ID,
+                "client_secret": LOGTO_APP_SECRET,
+            }
+        )
+        token_data = token_response.json()
+        mgmt_token = token_data.get("access_token")
+        if not mgmt_token:
+            print(f"Token error: {token_data}") 
+            return {"success": False, "message": "Failed to authenticate with Logto"}
+
+        # --- 第二步：带着这个 Token 去验证密码 ---
+        # 请求头写在 headers 参数里
+        verify_response = await client.post(
+            f"{LOGTO_ENDPOINT}/api/users/{logto_id}/password/verify",
+            headers={
+                "Authorization": f"Bearer {mgmt_token}", # 这就是你要的请求头
+                "Content-Type": "application/json"
+            },
+            json={"password": currentPassword}
+        )
+
+        # Logto 官方文档规定：验证成功返回 204 No Content
+        if verify_response.status_code == 204:
+            return {"success": True, "message": "Password correct"}
+        else:
+            return {"success": False, "message": "Password incorrect"}
+
+async def update_password(logto_id: str, currentPassword: str, newPassword: str):
+    verify_password_result = await verify_password(logto_id, currentPassword)
+    if not verify_password_result["success"]:
+        return {"success": False, "message": "Current password is incorrect, cannot update to new password"}
+    else:        
+        async with httpx.AsyncClient() as client:
+            token_response = await client.post(
+                f"{LOGTO_ENDPOINT}/oidc/token",
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
+                data={
+                    "grant_type": "client_credentials",
+                    "resource": f"{LOGTO_ENDPOINT}/api",
+                    "scope": "all",
+                    "client_id": LOGTO_APP_ID,
+                    "client_secret": LOGTO_APP_SECRET,
+                }
+            )
+        token_data = token_response.json()
+        mgmt_token = token_data.get("access_token")
+        if not mgmt_token:
+            print(f"Token error: {token_data}") 
+            return {"success": False, "message": "Failed to authenticate with Logto"}
+
+        # --- 第二步：带着这个 Token 去更新密码 ---
+        update_response = await client.patch(
+            f"{LOGTO_ENDPOINT}/api/users/{logto_id}/password",
+            headers={
+                "Authorization": f"Bearer {mgmt_token}",
+                "Content-Type": "application/json"
+            },
+            json={"newPassword": newPassword}
+        )
+        if update_response.status_code == 204:
+            return {"success": True, "message": "Password updated successfully"}
+        else:
+            return {"success": False, "message": "Failed to update password"}
+        
+def get_addresses(logto_id: str, db: Session):
+    addresses = db.query(models.ShippingAddress).filter(models.ShippingAddress.logto_id == logto_id).all()
+    return addresses
+
+def add_address(address_data: schemas.ShippingAddressUpdate, db: Session):
+    new_address = models.ShippingAddress(
+        logto_id=address_data.logto_id,
+        tag=address_data.tag,
+        recipient_name=address_data.recipient_name,
+        phone=address_data.phone,
+        country_code=address_data.country_code,
+        zip_code=address_data.zip_code,
+        state=address_data.state,
+        address_line=address_data.address_line,
+    )
+    db.add(new_address)
+    try:
+        db.commit()
+        db.refresh(new_address)
+        return new_address
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+def update_address(address_data: schemas.ShippingAddressUpdate, db: Session):
+    address = db.query(models.ShippingAddress).filter(
+        models.ShippingAddress.logto_id == address_data.logto_id,
+        models.ShippingAddress.id == address_data.id
+    ).first()
+    
+    if not address:
+        raise HTTPException(status_code=404, detail="Address not found")
+    
+    address.tag = address_data.tag
+    address.recipient_name = address_data.recipient_name
+    address.phone = address_data.phone
+    address.country_code = address_data.country_code
+    address.zip_code = address_data.zip_code
+    address.state = address_data.state
+    address.address_line = address_data.address_line
+    address.is_default = address_data.is_default
+    
+    try:
+        db.commit()
+        db.refresh(address)
+        return address
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    
+def set_default_address(address_data: schemas.defaultAddressSet, db: Session):
+    try:
+        db.query(models.ShippingAddress).filter(
+            models.ShippingAddress.logto_id == address_data.logto_id
+        ).update({models.ShippingAddress.is_default: False})
+        
+        target = db.query(models.ShippingAddress).filter(
+            models.ShippingAddress.id == address_data.id,
+            models.ShippingAddress.logto_id == address_data.logto_id
+        ).first()
+
+        if not target:
+            raise HTTPException(status_code=404, detail="Address not found")
+
+        target.is_default = True
+        
+        db.commit()
+        return {"message": "Default address updated successfully"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))

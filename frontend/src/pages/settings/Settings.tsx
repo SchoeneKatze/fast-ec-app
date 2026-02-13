@@ -129,44 +129,36 @@ export default function SettingsPage() {
 
   const updatePassword = async () => {
     if (isAuthenticated) {
-      if (currentPassword == confirmPassword) {
-        if (newPassword == currentPassword) alert("Same password!");
+      if (newPassword == confirmPassword) {
+        if (newPassword == currentPassword) alert("New password cannot be the same as current password!");
         else {
           try {
             const claims = await getIdTokenClaims();
             console.log("Logto claims:", claims);
             if (claims) {
-              const verifyPasswordResponse = await fetch(
-                `${BACKEND_URL}/auth/verifyPassword`,
+              const updatePasswordResponse = await fetch(
+                `${BACKEND_URL}/auth/updatePassword`,
                 {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({
                     logto_id: claims.sub,
+                    currentPassword: currentPassword,
                     newPassword: newPassword,
                   }),
                 },
               );
-              if (verifyPasswordResponse.ok) {
-                const response = await fetch(
-                  `${BACKEND_URL}/auth/updatePassword`,
-                  {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      logto_id: claims.sub,
-                      newPassword: newPassword,
-                      email: email
-                    }),
-                  },
-                );
 
-                if (response.ok) {
-                  const responseUserJsonFromBackend = await response.json();
-                  console.log(responseUserJsonFromBackend);
-
-                  navigate("/settings");
-                }
+              const updatePasswordResult = await updatePasswordResponse.json();
+              if (updatePasswordResponse.ok) {
+                alert("Password updated successfully!");
+                // Clear password fields
+                setCurrentPassword("");
+                setNewPassword("");
+                setConfirmPassword("");
+                navigate("/settings");
+              } else {
+                alert(`Password update failed: ${updatePasswordResult.message}`);
               }
             }
           } catch (error) {
@@ -174,16 +166,18 @@ export default function SettingsPage() {
           }
         }
       } else {
-        alert("");
+        alert("New passwords do not match!");
       }
     }
   };
+
+  const backToHome = () => navigate("/");
 
   return (
     <div className="flex flex-col h-screen bg-muted">
       {/* Fixed Header with Logo */}
       <div className="flex items-center border-b bg-background">
-        <div className="flex items-center gap-2 px-4 py-3 border-r w-fit shrink-0">
+        <div className="flex items-center gap-2 px-4 py-3 border-r w-fit shrink-0" onClick={backToHome} style={{ cursor: 'pointer' }}>
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
             <ShoppingBag className="w-5 h-5 text-primary-foreground" />
           </div>

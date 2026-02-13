@@ -2,13 +2,8 @@ from fastapi import APIRouter, Depends, Request, HTTPException
 from sqlalchemy.orm import Session
 from . import service, schemas
 from app.core.database import get_db
-import httpx, os
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
-
-LOGTO_ENDPOINT = os.getenv("LOGTO_ENDPOINT")
-LOGTO_APP_ID = os.getenv("LOGTO_APP_ID") 
-LOGTO_APP_SECRET = os.getenv("APP_SECRET")
 
 @router.post("/login")
 def login(request: Request, login_data: schemas.LoginRequest, db: Session = Depends(get_db)):
@@ -28,43 +23,31 @@ def updateUser(update_user_info: schemas.UserUpdateRequest, db: Session = Depend
     return service.update_user_info(update_user_info, db)
 
 @router.post("/verifyPassword")
-async def verifyPassword(logto_id: str, currentPassword: str):
+async def verifyPassword(password_data: schemas.PasswordUpdateData):
     print(f"verify password")
-    async with httpx.AsyncClient() as client:
-        # --- 第一步：获取管理权限的 Access Token ---
-        # 这一步不需要 Logto_id，需要的是你的 App ID 和 Secret
-        token_response = await client.post(
-            f"{LOGTO_ENDPOINT}/oidc/token",
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
-            data={
-                "grant_type": "client_credentials",
-                "resource": f"{LOGTO_ENDPOINT}/api", # 声明你要访问管理 API
-                "scope": "all",
-                "client_id": LOGTO_APP_ID,
-                "client_secret": LOGTO_APP_SECRET,
-            }
-        )
-        token_data = token_response.json()
-        mgmt_token = token_data.get("access_token")
-
-        # --- 第二步：带着这个 Token 去验证密码 ---
-        # 请求头写在 headers 参数里
-        verify_response = await client.post(
-            f"{LOGTO_ENDPOINT}/api/users/{logto_id}/password/verify",
-            headers={
-                "Authorization": f"Bearer {mgmt_token}", # 这就是你要的请求头
-                "Content-Type": "application/json"
-            },
-            json={"password": currentPassword}
-        )
-
-        # Logto 官方文档规定：验证成功返回 204 No Content
-        if verify_response.status_code == 204:
-            return {"success": True, "message": "Password correct"}
-        else:
-            return {"success": False, "message": "Password incorrect"}
+    return await service.verify_password(password_data.logto_id, password_data.currentPassword)
 
 @router.post("/updatePassword")
-def updatePassword(logto_id: str, newPassword: str):
+async def updatePassword(password_data: schemas.PasswordUpdateData):
     print(f"update password")
-    return service.update_password
+    return await service.update_password(password_data.logto_id, password_data.currentPassword, password_data.newPassword)
+
+@router.get("/getAddresses")
+def getAddresses(logto_id: str, db: Session = Depends(get_db)):
+    print(f"get addresses for logto_id: {logto_id}")
+    return service.get_addresses(logto_id, db)
+
+@router.post("/addAddress")
+def addAddress(address_data: schemas.ShippingAddressUpdate, db: Session = Depends(get_db)):
+    print(f"add address: {address_data.tag}")
+    return service.add_address(address_data, db)
+
+@router.post("/updateAddress")
+def updateAddress(address_data: schemas.ShippingAddressUpdate, db: Session = Depends(get_db)):
+    print(f"update address: {address_data.tag}")
+    return service.update_address(address_data, db)
+
+@router.post("/setDefaultAddress")
+def setDefaultAddress(address_data: schemas.defaultAddressSet, db: Session = Depends(get_db)):
+    print(f"set as default address : {address_data.tag}")
+    return service.set_default_address(address_data, db)
