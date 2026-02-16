@@ -31,23 +31,3 @@ async def verifyPassword(password_data: schemas.PasswordUpdateData):
 async def updatePassword(password_data: schemas.PasswordUpdateData):
     print(f"update password")
     return await service.update_password(password_data.logto_id, password_data.currentPassword, password_data.newPassword)
-
-@router.get("/getAddresses")
-def getAddresses(logto_id: str, db: Session = Depends(get_db)):
-    print(f"get addresses for logto_id: {logto_id}")
-    return service.get_addresses(logto_id, db)
-
-@router.post("/addAddress")
-def addAddress(address_data: schemas.ShippingAddressUpdate, db: Session = Depends(get_db)):
-    print(f"add address: {address_data.tag}")
-    return service.add_address(address_data, db)
-
-@router.post("/updateAddress")
-def updateAddress(address_data: schemas.ShippingAddressUpdate, db: Session = Depends(get_db)):
-    print(f"update address: {address_data.tag}")
-    return service.update_address(address_data, db)
-
-@router.post("/setDefaultAddress")
-def setDefaultAddress(address_data: schemas.defaultAddressSet, db: Session = Depends(get_db)):
-    print(f"set as default address : {address_data.tag}")
-    return service.set_default_address(address_data, db)

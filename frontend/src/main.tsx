@@ -10,6 +10,7 @@ const appId = import.meta.env.VITE_LOGTO_APP_ID;
 const config: LogtoConfig = {
   endpoint: endpoint,
   appId: appId,
+  scopes: ["all"],
 };
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
