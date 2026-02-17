@@ -1,3 +1,6 @@
+venv\Scripts\activate
+uvicorn app.main:app --reload
+
 python uvicorn app.main:app --reload
 
 C:\Users\gao.bo\MyFolder\fast-ec-app\backend\venv\Scripts\activate

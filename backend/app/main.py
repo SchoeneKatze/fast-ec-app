@@ -7,6 +7,7 @@ load_dotenv()
 
 from app.modules.users.router import router as user_router
 from app.modules.addresses.router import router as address_router
+from app.modules.products.router import router as products_router
 
 app = FastAPI()
 origins = [
@@ -24,3 +25,4 @@ app.add_middleware(
 
 app.include_router(user_router)
 app.include_router(address_router)
+app.include_router(products_router)

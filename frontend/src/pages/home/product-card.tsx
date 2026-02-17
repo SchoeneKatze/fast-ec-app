@@ -3,19 +3,30 @@ import { Button } from "@/components/ui/button";
 import { Minus, Plus, Package, ShoppingCart } from "lucide-react";
 import { useState } from "react";
 
-interface ProductCardProps {
-  // productId: string;
+export interface ProductCardProps {
+  product_id: string;
   title: string;
-  price: number;
-  discount?: number;
-  category: string;
+  category_name: string;
+  base_price: number;
+  discount_rate: number;
+  tax_rate: number;
+  final_price: number;
+  image_url?: string;
+  stock_status: string;
+  symbol: string;
+  final_no_discount_price_for_show: number;
 }
 
-export function ProductCard({ title, price, discount }: ProductCardProps) {
-  const discountedPrice = discount ? price * (1 - discount / 100) : price;
+export function ProductCard({ title, final_price,
+  discount_rate, stock_status, symbol,
+  final_no_discount_price_for_show }
+  : ProductCardProps) {
 
+  // 折扣显示逻辑：如果 discount 是 0.85，显示 15% Off
+  const discountPercent = Math.round((1 - discount_rate) * 100);
 
   const [productAmount, setProductAmount] = useState(1);
+
   const plusAmount = () => {
     setProductAmount((prev) => (prev + 1));
   };
@@ -29,9 +40,9 @@ export function ProductCard({ title, price, discount }: ProductCardProps) {
         <div className="w-full h-40 bg-muted flex items-center justify-center">
           <Package className="h-12 w-12 text-muted-foreground" />
         </div>
-        {discount && (
+        {discount_rate < 1 && (
           <div className="absolute top-2 left-2 bg-yellow-400 text-black px-2 py-1 rounded-md text-xs font-medium">
-            {discount}% Off
+            {discountPercent}% Off
           </div>
         )}
       </div>
@@ -39,11 +50,11 @@ export function ProductCard({ title, price, discount }: ProductCardProps) {
         <h3 className="text-sm font-medium mb-1 line-clamp-2">{title}</h3>
         <div className="flex items-center gap-2 mb-3">
           <span className="text-primary font-bold">
-            ${discountedPrice.toFixed(2)}
+            {symbol}{final_price}
           </span>
-          {discount && (
+          {discount_rate < 1 && (
             <span className="text-xs text-muted-foreground line-through">
-              ${price.toFixed(2)}
+              {symbol}{final_no_discount_price_for_show}
             </span>
           )}
         </div>
@@ -53,13 +64,15 @@ export function ProductCard({ title, price, discount }: ProductCardProps) {
             size="icon"
             className="rounded-full h-8 w-8 bg-transparent"
             onClick={minusAmount}
-            disabled={productAmount <= 1}
+            disabled={stock_status === "out_of_stock"}
           >
             <Minus className="h-4 w-4" />
           </Button>
+
           <span id="productAmount" className="font-medium">
             {productAmount}
           </span>
+
           <Button
             variant="outline"
             size="icon"
