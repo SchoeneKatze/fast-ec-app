@@ -37,6 +37,7 @@ class Product(Base):
     title = Column(String(200), nullable=False)
     description = Column(Text, nullable=True)
     base_price = Column(Numeric(12, 2), nullable=False) 
+    currency_code = Column(String(3), nullable=False) # USD, JPY
     discount_factor = Column(Numeric(3, 2), default=1.0)     
     tax_class = Column(String(50), nullable=False)     
     stock_quantity = Column(Integer, default=0)
@@ -48,4 +49,11 @@ class Product(Base):
     dimensions = Column(String(100), nullable=True)
     created_at = Column(Date, nullable=True)
     isActive = Column(Boolean, default=True)
-    image_url = Column(String(500), nullable=True)
+
+class ProductImage(Base):
+    __tablename__ = "product_images"
+    
+    image_id = Column(Integer, primary_key=True, autoincrement=True)
+    product_id = Column(String(50), ForeignKey("products.product_id", ondelete="CASCADE"))
+    image_url = Column(Text, nullable=False)
+    sort_order = Column(Integer, default=0)

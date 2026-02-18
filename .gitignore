@@ -1,1 +1,5 @@
 git_token_command.txt
+venv/
+.venv/
+__pycache__/
+*.pyc

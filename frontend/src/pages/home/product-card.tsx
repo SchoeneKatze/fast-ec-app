@@ -1,6 +1,11 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Minus, Plus, Package, ShoppingCart } from "lucide-react";
+import {
+  Minus,
+  Plus,
+  // Package,
+  ShoppingCart,
+} from "lucide-react";
 import { useState } from "react";
 
 export interface ProductCardProps {
@@ -15,30 +20,36 @@ export interface ProductCardProps {
   stock_status: string;
   symbol: string;
   final_no_discount_price_for_show: number;
+  is_show_inclusive: boolean;
 }
 
-export function ProductCard({ title, final_price,
-  discount_rate, stock_status, symbol,
-  final_no_discount_price_for_show }
-  : ProductCardProps) {
-
+export function ProductCard({
+  title,
+  final_price,
+  discount_rate,
+  stock_status,
+  symbol,
+  final_no_discount_price_for_show,
+  is_show_inclusive,
+}: ProductCardProps) {
   // 折扣显示逻辑：如果 discount 是 0.85，显示 15% Off
   const discountPercent = Math.round((1 - discount_rate) * 100);
 
   const [productAmount, setProductAmount] = useState(1);
 
   const plusAmount = () => {
-    setProductAmount((prev) => (prev + 1));
+    setProductAmount((prev) => prev + 1);
   };
   const minusAmount = () => {
-    setProductAmount((prev) => (prev - 1));
+    setProductAmount((prev) => prev - 1);
   };
 
   return (
     <Card className="overflow-hidden bg-background">
       <div className="relative">
         <div className="w-full h-40 bg-muted flex items-center justify-center">
-          <Package className="h-12 w-12 text-muted-foreground" />
+          {/* <Package className="h-12 w-12 text-muted-foreground" /> */}
+          <img className="h-12 w-12 text-muted-foreground" />
         </div>
         {discount_rate < 1 && (
           <div className="absolute top-2 left-2 bg-yellow-400 text-black px-2 py-1 rounded-md text-xs font-medium">
@@ -50,11 +61,14 @@ export function ProductCard({ title, final_price,
         <h3 className="text-sm font-medium mb-1 line-clamp-2">{title}</h3>
         <div className="flex items-center gap-2 mb-3">
           <span className="text-primary font-bold">
-            {symbol}{final_price}
+            {symbol}
+            {final_price}
+            {is_show_inclusive ? " (Tax in)" : ""}
           </span>
           {discount_rate < 1 && (
             <span className="text-xs text-muted-foreground line-through">
-              {symbol}{final_no_discount_price_for_show}
+              {symbol}
+              {final_no_discount_price_for_show}
             </span>
           )}
         </div>

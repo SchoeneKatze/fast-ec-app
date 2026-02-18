@@ -8,6 +8,8 @@ export const COUNTRY_LIST = [
     { code: "IN", name: "India", label: "(IN) India" },
     { code: "CA", name: "Canada", label: "(CA) Canada" },
     { code: "AU", name: "Australia", label: "(AU) Australia" },
+    { code: "TW", name: "Taiwan", label: "(TW) 台湾" },
+    { code: "HK", name: "Hong Kong", label: "(HK) 香港" },
     { code: "BR", name: "Brazil", label: "(BR) Brasil" },
     { code: "RU", name: "Russia", label: "(RU) Россия" },
     { code: "ZA", name: "South Africa", label: "(ZA) South Africa" },

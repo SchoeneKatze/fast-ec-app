@@ -13,3 +13,4 @@ class ProductCardResponse(BaseModel):
     final_no_discount_price_for_show: float
     stock_status: str
     image_url: Optional[str]
+    is_show_inclusive: bool

@@ -11,8 +11,8 @@ from app.modules.products.router import router as products_router
 
 app = FastAPI()
 origins = [
-    os.getenv("DB_URL_LOCAL"),
-    os.getenv("DB_URL"),
+    os.getenv("FRONT_URL_LOCAL"),
+    os.getenv("FRONT_URL"),
 ]
 
 app.add_middleware(
