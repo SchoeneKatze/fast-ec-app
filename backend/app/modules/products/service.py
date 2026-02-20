@@ -1,5 +1,5 @@
 from sqlalchemy import select, and_
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 from .models import Currency, Product, Category, ProductImage, TaxSetting
 from decimal import ROUND_DOWN, ROUND_HALF_UP, Decimal
 import json, os
@@ -18,7 +18,7 @@ for curr_code, info in CURRENCY_CONFIG.items():
         COUNTRY_MAP[c_code] = curr_code
 
 
-async def get_product_cards(country_code: str, db: AsyncSession):
+async def get_product_cards(country_code: str, db: Session):
     # 确定货币码 (找不到就默认为美元)
     curr_code = COUNTRY_MAP.get(country_code, "USD")
     conf = CURRENCY_CONFIG.get(curr_code)
@@ -50,14 +50,8 @@ async def get_product_cards(country_code: str, db: AsyncSession):
         .where(Product.isActive == True)
     )
 
-    # 2. 执行查询
-    exec_result = db.execute(stmt)
-    if hasattr(exec_result, "__await__"):
-        result = await exec_result
-    else:
-        result = exec_result
-
-    rows = result.all()
+    # 2. 执行查询并获取结果
+    rows = db.execute(stmt)
 
     # 3. 处理变量准备
     rounding_style = ROUND_DOWN if conf["rounding_mode"] == "DOWN" else ROUND_HALF_UP

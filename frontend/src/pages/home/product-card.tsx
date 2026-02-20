@@ -7,9 +7,11 @@ import {
   ShoppingCart,
 } from "lucide-react";
 import { useState } from "react";
+import { useCartStore } from "@/lib/useCartStore";
 
 export interface ProductCardProps {
   product_id: string;
+  user_id: number;
   title: string;
   category_name: string;
   base_price: number;
@@ -24,12 +26,15 @@ export interface ProductCardProps {
 }
 
 export function ProductCard({
+  product_id,
+  user_id,
   title,
   final_price,
   discount_rate,
   stock_status,
   symbol,
   final_no_discount_price_for_show,
+  image_url,
   is_show_inclusive,
 }: ProductCardProps) {
   // 折扣显示逻辑：如果 discount 是 0.85，显示 15% Off
@@ -41,7 +46,29 @@ export function ProductCard({
     setProductAmount((prev) => prev + 1);
   };
   const minusAmount = () => {
-    setProductAmount((prev) => prev - 1);
+    setProductAmount((prev) => (prev > 1 ? prev - 1 : 1));
+  };
+
+  const addOptimistically = useCartStore((state) => state.addOptimistically);
+
+  const handleAddToCart = async () => {
+    // 只有有货才允许添加
+    if (stock_status === "out_of_stock") return;
+
+    await addOptimistically({
+      product_id,
+      title,
+      productAmount, // 传入当前选择的数量
+      symbol,
+      final_price,
+      final_no_discount_price_for_show,
+      image_url,
+      stock_status,
+      is_show_inclusive,
+    });
+
+    // 体验优化：添加后重置为 1
+    setProductAmount(1);
   };
 
   return (
@@ -96,7 +123,12 @@ export function ProductCard({
             <Plus className="h-4 w-4" />
           </Button>
         </div>
-        <Button className="w-full" size="sm">
+        <Button
+          className="w-full"
+          size="sm"
+          onClick={handleAddToCart}
+          disabled={stock_status === "out_of_stock"}
+        >
           <ShoppingCart className="h-4 w-4 mr-2" />
           Add to Cart
         </Button>

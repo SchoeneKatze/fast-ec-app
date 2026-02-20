@@ -1,24 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { CreditCard, QrCode, Truck, ShoppingCart, X } from "lucide-react";
-
-const cartItems = [
-  {
-    title: "Wireless Bluetooth Headphones with Noise Cancellation",
-    price: 89.99,
-    quantity: 1,
-  },
-  {
-    title: "Organic Cotton T-Shirt - Navy Blue (Size M)",
-    price: 29.99,
-    quantity: 2,
-  },
-  { title: "Stainless Steel Water Bottle 750ml", price: 24.99, quantity: 1 },
-  {
-    title: "Running Shoes - Lightweight Mesh Design",
-    price: 79.99,
-    quantity: 1,
-  },
-];
+import { useCartStore } from "@/lib/useCartStore";
 
 interface CartProps {
   isCollapsed: boolean;
@@ -32,15 +14,31 @@ export function Cart({
   isCollapsed,
   onToggle,
   isAuthenticated,
-  showAfterLogin
+  showAfterLogin,
 }: CartProps) {
-  const totalItems = cartItems.reduce((acc, item) => acc + item.quantity, 0);
-  const subtotal = cartItems.reduce(
-    (acc, item) => acc + item.price * item.quantity,
+  const cartItems = useCartStore((state) => state.cartItems);
+  const activeItems = cartItems.filter(
+    (item) => item.stock_status !== "out_of_stock",
+  );
+
+  const totalItems = activeItems.reduce(
+    (acc, item) => acc + item.productAmount,
     0,
   );
-  const tax = subtotal * 0.05;
-  const total = subtotal + tax;
+
+  const rawSubtotal = activeItems.reduce(
+    (acc, item) => acc + item.final_price * item.productAmount,
+    0,
+  );
+
+  const firstItemPrice = activeItems[0]?.final_price.toString() || "";
+  const decimalMatches = firstItemPrice.match(/\.(\d+)/);
+  const precision = decimalMatches ? decimalMatches[1].length : 0;
+
+  const subtotal =
+    Math.floor(rawSubtotal * Math.pow(10, precision)) / Math.pow(10, precision);
+
+  const currencySymbol = cartItems.length > 0 ? cartItems[0].symbol : "$";
 
   if (isCollapsed) {
     return (
@@ -50,12 +48,12 @@ export function Cart({
           size="icon"
           onClick={onToggle}
           className="relative"
-          disabled={ !showAfterLogin }
+          disabled={!showAfterLogin}
         >
           <ShoppingCart className="h-5 w-5" />
           {totalItems > 0 && (
             <span className="absolute -top-1 -left-1 w-5 h-5 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center">
-              { isAuthenticated ? totalItems : 0 }
+              {isAuthenticated ? totalItems : 0}
             </span>
           )}
         </Button>
@@ -74,7 +72,10 @@ export function Cart({
 
       <div className="flex-1 overflow-auto p-4">
         {cartItems.map((item, index) => (
-          <div key={index} className="flex items-center gap-3 mb-4">
+          <div
+            key={item.id || index}
+            className={`flex items-center gap-3 mb-4 ${item.stock_status === "out_of_stock" ? "opacity-40" : ""}`}
+          >
             <div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center">
               <ShoppingCart className="h-6 w-6 text-muted-foreground" />
             </div>
@@ -82,10 +83,11 @@ export function Cart({
               <h4 className="text-sm font-medium line-clamp-2">{item.title}</h4>
               <div className="flex justify-between items-center mt-1">
                 <span className="text-primary font-bold">
-                  ${item.price.toFixed(2)}
+                  {item.symbol}
+                  {item.final_price}
                 </span>
                 <span className="text-sm text-muted-foreground">
-                  {item.quantity}X
+                  {item.productAmount}X
                 </span>
               </div>
             </div>
@@ -97,15 +99,14 @@ export function Cart({
         <div className="space-y-2 mb-4">
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Sub Total</span>
-            <span>${subtotal.toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Tax 5%</span>
-            <span>${tax.toFixed(2)}</span>
+            <span>
+              {currencySymbol}
+              {subtotal}
+            </span>
           </div>
           <div className="flex justify-between font-bold">
             <span>Total Amount</span>
-            <span>${total.toFixed(2)}</span>
+            <span>{totalItems}</span>
           </div>
         </div>
 
@@ -139,7 +140,7 @@ export function Cart({
 
         <Button
           className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12"
-          disabled={!showAfterLogin}
+          disabled={!showAfterLogin || totalItems === 0}
         >
           Purchase
         </Button>
