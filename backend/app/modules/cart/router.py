@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from . import service, schemas
 from app.core.database import get_db
 
-router = APIRouter(prefix="/cart/", tags=["Cart"])
+router = APIRouter(prefix="/cart", tags=["Cart"])
 
 @router.get("/list", response_model=list[schemas.CartItemSchema])
 def get_cart_items(db: Session = Depends(get_db)):

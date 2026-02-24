@@ -1,13 +1,12 @@
 import { toast } from "@/components/ui/use-toast";
-import { useLogto } from "node_modules/@logto/react/lib/hooks";
 import { create } from "zustand";
 
 export interface CartItem {
   id?: number;
   product_id: string;
-  user_id: number;
+  user_id: string;
   title: string;
-  productAmount: number;
+  quantity: number;
   symbol: string;
   final_price: number;
   final_no_discount_price_for_show: number;
@@ -16,35 +15,19 @@ export interface CartItem {
   is_show_inclusive: boolean;
 }
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+
 interface CartStore {
   cartItems: CartItem[];
   refreshCart: () => Promise<void>;
   addOptimistically: (item: CartItem) => Promise<void>;
 }
 
-const { getIdTokenClaims } = useLogto();
-
-const claims = await getIdTokenClaims();
-console.log("Logto claims:", claims);
-
-if (claims) {
-  const response = await fetch(`${BACKEND_URL}/auth/getMe`, {
-    headers: {
-      Authorization: `Bearer ${await getIdToken()}`,
-    },
-  });
-  if (!response.ok) {
-    throw new Error("Failed to get user info");
-  }
-  const userData = await response.json();
-  user_id = userData.logto_id;
-}
-
 export const useCartStore = create<CartStore>((set, get) => ({
   cartItems: [],
 
   refreshCart: async () => {
-    const response = await fetch("/api/cart/list");
+    const response = await fetch(`${BACKEND_URL}/cart/list`);
     const data = await response.json();
     set({ cartItems: data });
   },
@@ -65,7 +48,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
         return {
           cartItems: state.cartItems.map((i) =>
             i.product_id === newItem.product_id
-              ? { ...i, productAmount: i.productAmount + newItem.productAmount }
+              ? { ...i, quantity: i.quantity + newItem.quantity }
               : i,
           ),
         };
@@ -80,12 +63,13 @@ export const useCartStore = create<CartStore>((set, get) => ({
     });
 
     try {
-      const response = await fetch("/cart/add", {
+      const response = await fetch(`${BACKEND_URL}/cart/add`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          user_id: newItem.user_id,
           product_id: newItem.product_id,
-          productAmount: newItem.productAmount,
+          quantity: newItem.quantity,
         }),
       });
 
@@ -99,7 +83,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
             ? {
                 ...i,
                 id: serverItem.id,
-                productAmount: serverItem.productAmount,
+                quantity: serverItem.quantity,
               }
             : i,
         ),
@@ -110,6 +94,3 @@ export const useCartStore = create<CartStore>((set, get) => ({
     }
   },
 }));
-function getIdTokenClaims() {
-  throw new Error("Function not implemented.");
-}

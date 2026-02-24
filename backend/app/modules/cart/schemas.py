@@ -3,11 +3,11 @@ from pydantic import BaseModel
 from typing import Optional
 
 
-
 class CartItemSchema(BaseModel):
     id: Optional[int] = None
+    user_id: str
     product_id: str
-    productAmount: int
+    quantity: int
     updated_at: Optional[datetime.datetime] = None
 
 

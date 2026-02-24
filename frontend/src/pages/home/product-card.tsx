@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useCartStore } from "@/lib/useCartStore";
+import { useLogto } from "@logto/react";
 
 export interface ProductCardProps {
   product_id: string;
@@ -27,7 +28,6 @@ export interface ProductCardProps {
 
 export function ProductCard({
   product_id,
-  user_id,
   title,
   final_price,
   discount_rate,
@@ -37,16 +37,18 @@ export function ProductCard({
   image_url,
   is_show_inclusive,
 }: ProductCardProps) {
+  const { getIdTokenClaims } = useLogto();
+
   // 折扣显示逻辑：如果 discount 是 0.85，显示 15% Off
   const discountPercent = Math.round((1 - discount_rate) * 100);
 
-  const [productAmount, setProductAmount] = useState(1);
+  const [quantity, setQuantity] = useState(1);
 
   const plusAmount = () => {
-    setProductAmount((prev) => prev + 1);
+    setQuantity((prev) => prev + 1);
   };
   const minusAmount = () => {
-    setProductAmount((prev) => (prev > 1 ? prev - 1 : 1));
+    setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
   };
 
   const addOptimistically = useCartStore((state) => state.addOptimistically);
@@ -55,20 +57,31 @@ export function ProductCard({
     // 只有有货才允许添加
     if (stock_status === "out_of_stock") return;
 
-    await addOptimistically({
-      product_id,
-      title,
-      productAmount, // 传入当前选择的数量
-      symbol,
-      final_price,
-      final_no_discount_price_for_show,
-      image_url,
-      stock_status,
-      is_show_inclusive,
-    });
+    const claims = await getIdTokenClaims();
+    console.log("Logto claims:", claims);
 
+    if (claims) {
+      const logto_id = claims?.sub;
+      if (!logto_id) {
+        alert("请先登录");
+        return;
+      }
+
+      await addOptimistically({
+        product_id,
+        title,
+        symbol,
+        final_price,
+        final_no_discount_price_for_show,
+        image_url,
+        stock_status,
+        is_show_inclusive,
+        user_id: logto_id, // 这里的 logto_id 会作为 user_id 传给后端
+        quantity: quantity,
+      });
+    }
     // 体验优化：添加后重置为 1
-    setProductAmount(1);
+    setQuantity(1);
   };
 
   return (
@@ -110,8 +123,8 @@ export function ProductCard({
             <Minus className="h-4 w-4" />
           </Button>
 
-          <span id="productAmount" className="font-medium">
-            {productAmount}
+          <span id="quantity" className="font-medium">
+            {quantity}
           </span>
 
           <Button

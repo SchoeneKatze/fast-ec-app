@@ -22,12 +22,12 @@ export function Cart({
   );
 
   const totalItems = activeItems.reduce(
-    (acc, item) => acc + item.productAmount,
+    (acc, item) => acc + item.quantity,
     0,
   );
 
   const rawSubtotal = activeItems.reduce(
-    (acc, item) => acc + item.final_price * item.productAmount,
+    (acc, item) => acc + item.final_price * item.quantity,
     0,
   );
 
@@ -87,7 +87,7 @@ export function Cart({
                   {item.final_price}
                 </span>
                 <span className="text-sm text-muted-foreground">
-                  {item.productAmount}X
+                  {item.quantity}X
                 </span>
               </div>
             </div>
