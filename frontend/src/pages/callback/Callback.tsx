@@ -1,6 +1,7 @@
 import { useHandleSignInCallback, useLogto } from "@logto/react";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import { toast } from "@/components/ui/use-toast";
 
 const Callback = () => {
   const navigate = useNavigate();
@@ -32,9 +33,16 @@ const Callback = () => {
               console.log("internal_id: ", responseUserJsonFromBackend.internal_id);
 
               navigate("/");
+              toast({
+            title: "Login successful",
+            description: `Logged in successfully`,
+          });
             }
           }   
-          }catch(error){console.log("Database sync failed", error);}
+          }catch(error){console.log("Database sync failed", error);toast({
+            title: "Database sync failed. Login data may not be saved correctly.",
+            description: `Database sync failed. Login data may not be saved correctly.`,
+          });}
         }
       };
 

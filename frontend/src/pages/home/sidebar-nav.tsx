@@ -16,11 +16,12 @@ import { useNavigate } from "react-router-dom";
 
 
 const categories = [
-  { id: "electronics", label: "Electronics" },
-  { id: "clothing", label: "Clothing" },
-  { id: "home", label: "Home & Garden" },
-  { id: "sports", label: "Sports & Outdoors" },
-  { id: "beauty", label: "Beauty & Health" },
+  { id: "comingsoon", label: "Coming Soon..." },
+  // { id: "electronics", label: "Electronics" },
+  // { id: "clothing", label: "Clothing" },
+  // { id: "home", label: "Home & Garden" },
+  // { id: "sports", label: "Sports & Outdoors" },
+  // { id: "beauty", label: "Beauty & Health" },
 ];
 
 const navItems = [

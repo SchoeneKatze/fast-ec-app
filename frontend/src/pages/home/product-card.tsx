@@ -44,10 +44,10 @@ export function ProductCard({
 
   const [quantity, setQuantity] = useState(1);
 
-  const plusAmount = () => {
+  const plusQuantity = () => {
     setQuantity((prev) => prev + 1);
   };
-  const minusAmount = () => {
+  const minusQuantity = () => {
     setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
   };
 
@@ -63,7 +63,7 @@ export function ProductCard({
     if (claims) {
       const logto_id = claims?.sub;
       if (!logto_id) {
-        alert("请先登录");
+        alert("please login.");
         return;
       }
 
@@ -117,7 +117,7 @@ export function ProductCard({
             variant="outline"
             size="icon"
             className="rounded-full h-8 w-8 bg-transparent"
-            onClick={minusAmount}
+            onClick={minusQuantity}
             disabled={stock_status === "out_of_stock"}
           >
             <Minus className="h-4 w-4" />
@@ -131,7 +131,7 @@ export function ProductCard({
             variant="outline"
             size="icon"
             className="rounded-full h-8 w-8 bg-transparent"
-            onClick={plusAmount}
+            onClick={plusQuantity}
           >
             <Plus className="h-4 w-4" />
           </Button>

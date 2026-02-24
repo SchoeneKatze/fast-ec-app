@@ -1,6 +1,17 @@
 import { Button } from "@/components/ui/button";
-import { CreditCard, QrCode, Truck, ShoppingCart, X } from "lucide-react";
+import {
+  CreditCard,
+  QrCode,
+  Truck,
+  ShoppingCart,
+  X,
+  Plus,
+  Minus,
+  Trash2,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 import { useCartStore } from "@/lib/useCartStore";
+import { useLogto } from "@logto/react";
 
 interface CartProps {
   isCollapsed: boolean;
@@ -16,15 +27,35 @@ export function Cart({
   isAuthenticated,
   showAfterLogin,
 }: CartProps) {
+  const { getIdTokenClaims } = useLogto();
   const cartItems = useCartStore((state) => state.cartItems);
+  const refreshCart = useCartStore((state) => state.refreshCart);
+  const [userId, setUserId] = useState<string>("");
+
+  useEffect(() => {
+    const initCart = async () => {
+      if (isAuthenticated) {
+        try {
+          const claims = await getIdTokenClaims();
+          console.log("Logto claims:", claims);
+          const logto_id = claims?.sub;
+          if (claims?.sub) setUserId(claims.sub);
+          if (logto_id) {
+            refreshCart(logto_id);
+          }
+        } catch (err) {
+          console.error("User initialization error:", err);
+        }
+      }
+    };
+    initCart();
+  }, [isAuthenticated, getIdTokenClaims, refreshCart]);
+
   const activeItems = cartItems.filter(
     (item) => item.stock_status !== "out_of_stock",
   );
 
-  const totalItems = activeItems.reduce(
-    (acc, item) => acc + item.quantity,
-    0,
-  );
+  const totalItems = activeItems.reduce((acc, item) => acc + item.quantity, 0);
 
   const rawSubtotal = activeItems.reduce(
     (acc, item) => acc + item.final_price * item.quantity,
@@ -81,14 +112,63 @@ export function Cart({
             </div>
             <div className="flex-1">
               <h4 className="text-sm font-medium line-clamp-2">{item.title}</h4>
+              {/* remove button */}
+              <button
+                onClick={() =>
+                  useCartStore.getState().removeItem(item.product_id, userId)
+                }
+                className="text-muted-foreground hover:text-destructive transition-colors"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
               <div className="flex justify-between items-center mt-1">
                 <span className="text-primary font-bold">
                   {item.symbol}
                   {item.final_price}
                 </span>
-                <span className="text-sm text-muted-foreground">
-                  {item.quantity}X
-                </span>
+
+                {/* quantity button of cart */}
+                <div className="flex items-center gap-2 bg-muted rounded-md px-2 py-1">
+                  <button
+                    onClick={() => {
+                      if (item.quantity > 1) {
+                        useCartStore
+                          .getState()
+                          .updateQuantity(
+                            item.product_id,
+                            item.quantity - 1,
+                            userId,
+                          );
+                      } else {
+                        useCartStore
+                          .getState()
+                          .removeItem(item.product_id, userId);
+                      }
+                    }}
+                    className="hover:text-primary transition-colors"
+                  >
+                    <Minus className="h-3 w-3" />
+                  </button>
+
+                  <span className="text-xs font-semibold w-4 text-center">
+                    {item.quantity}
+                  </span>
+
+                  <button
+                    onClick={() =>
+                      useCartStore
+                        .getState()
+                        .updateQuantity(
+                          item.product_id,
+                          item.quantity + 1,
+                          userId,
+                        )
+                    }
+                    className="hover:text-primary transition-colors"
+                  >
+                    <Plus className="h-3 w-3" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -98,15 +178,15 @@ export function Cart({
       <div className="border-t p-4">
         <div className="space-y-2 mb-4">
           <div className="flex justify-between text-sm">
+            <span>Total Quantity</span>
+            <span> X {totalItems}</span>
+          </div>
+          <div className="flex justify-between font-bold">
             <span className="text-muted-foreground">Sub Total</span>
             <span>
               {currencySymbol}
               {subtotal}
             </span>
-          </div>
-          <div className="flex justify-between font-bold">
-            <span>Total Amount</span>
-            <span>{totalItems}</span>
           </div>
         </div>
 

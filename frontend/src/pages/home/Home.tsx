@@ -5,6 +5,7 @@ import { Header } from "./header"
 import { ProductGrid } from "./product-grid"
 import { Cart } from "./cart"
 import { useLogto } from "@logto/react";
+import { toast } from "@/components/ui/use-toast"
 
 export default function Home() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
@@ -17,6 +18,10 @@ export default function Home() {
     const handleAuthAction = () => {
     if (isAuthenticated) {
       signOut(window.location.origin);
+      toast({
+        title: "Logged out",
+        description: `Logged out successfully.`,
+      });
     } else {
       signIn(window.location.origin + "/callback");
     }

@@ -45,6 +45,7 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { useLogto } from "@logto/react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "@/components/ui/use-toast";
 // import "./settings.css"
 
 export default function SettingsPage() {
@@ -89,6 +90,9 @@ export default function SettingsPage() {
         }
       } catch (err) {
         console.error("Failed to load user data", err);
+        toast({
+          title: "Failed to load user data",
+        });
       }
     };
 
@@ -119,10 +123,16 @@ export default function SettingsPage() {
             console.log(responseUserJsonFromBackend);
 
             navigate("/settings");
+            toast({
+            title: "User data updated successfully",
+          });
           }
         }
       } catch (error) {
         console.log("Password update failed", error);
+        toast({
+          title: "Failed to update user data",
+        });
       }
     }
   };
@@ -130,11 +140,12 @@ export default function SettingsPage() {
   const updatePassword = async () => {
     if (isAuthenticated) {
       if (newPassword == confirmPassword) {
-        if (newPassword == currentPassword) alert("New password cannot be the same as current password!");
+        if (newPassword == currentPassword)
+          alert("New password cannot be the same as current password!");
         else {
           try {
             const claims = await getIdTokenClaims();
-            console.log("Logto claims:", claims);
+            // console.log("Logto claims:", claims);
             if (claims) {
               const updatePasswordResponse = await fetch(
                 `${BACKEND_URL}/auth/updatePassword`,
@@ -157,8 +168,17 @@ export default function SettingsPage() {
                 setNewPassword("");
                 setConfirmPassword("");
                 navigate("/settings");
+                toast({
+                  title: "Password updated successfully",
+                });
               } else {
-                alert(`Password update failed: ${updatePasswordResult.message}`);
+                console.log(
+                  `Password update failed: ${updatePasswordResult.message}`,
+                );
+                toast({
+                  title: "Failed to update password",
+                  description: `Failed to update password: ${updatePasswordResult.message}`,
+                });
               }
             }
           } catch (error) {
@@ -177,7 +197,11 @@ export default function SettingsPage() {
     <div className="flex flex-col h-screen bg-muted">
       {/* Fixed Header with Logo */}
       <div className="flex items-center border-b bg-background">
-        <div className="flex items-center gap-2 px-4 py-3 border-r w-fit shrink-0" onClick={backToHome} style={{ cursor: 'pointer' }}>
+        <div
+          className="flex items-center gap-2 px-4 py-3 border-r w-fit shrink-0"
+          onClick={backToHome}
+          style={{ cursor: "pointer" }}
+        >
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
             <ShoppingBag className="w-5 h-5 text-primary-foreground" />
           </div>

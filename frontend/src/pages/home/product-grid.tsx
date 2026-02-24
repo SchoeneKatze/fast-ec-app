@@ -9,9 +9,10 @@ export function ProductGrid() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const geoRes = await fetch("https://ipapi.co/json/");
-        const geoData = await geoRes.json();
-        const countryCode = geoData.country_code || "US";
+        // const geoRes = await fetch("https://ipapi.co/json/");
+        // const geoData = await geoRes.json();
+        // const countryCode = geoData.country_code || "US";
+        const countryCode = "JP";
 
         const productRes = await fetch(
           `${BACKEND_URL}/products/${countryCode}/productCards`,
