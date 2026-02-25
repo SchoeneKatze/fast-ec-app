@@ -5,8 +5,8 @@ import {
   History,
   Settings,
   LogOut,
-  ChevronDown,
-  ChevronRight,
+  // ChevronDown,
+  // ChevronRight,
   PanelLeftClose,
   PanelLeft,
 } from "lucide-react";
@@ -15,14 +15,14 @@ import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 
 
-const categories = [
-  { id: "comingsoon", label: "Coming Soon..." },
-  // { id: "electronics", label: "Electronics" },
-  // { id: "clothing", label: "Clothing" },
-  // { id: "home", label: "Home & Garden" },
-  // { id: "sports", label: "Sports & Outdoors" },
-  // { id: "beauty", label: "Beauty & Health" },
-];
+// const categories = [
+//   { id: "comingsoon", label: "Coming Soon..." },
+//   { id: "electronics", label: "Electronics" },
+//   { id: "clothing", label: "Clothing" },
+//   { id: "home", label: "Home & Garden" },
+//   { id: "sports", label: "Sports & Outdoors" },
+//   { id: "beauty", label: "Beauty & Health" },
+// ];
 
 const navItems = [
   { icon: MapPin, label: "Saved Addresses", path: "/addresses", color: "text-muted-foreground" },
@@ -44,8 +44,8 @@ interface SidebarNavProps {
 export function SidebarNav({
   isCollapsed,
   onToggle,
-  selectedCategory,
-  onSelectCategory,
+  // selectedCategory,
+  // onSelectCategory,
   isAuthenticated,
   isLoading,
   handleAuthAction,
@@ -106,14 +106,16 @@ export function SidebarNav({
         >
           <Package className="mr-2 h-4 w-4" />
           Products
-          {isCategoriesOpen ? (
+
+          {/* {isCategoriesOpen ? (
             <ChevronDown className="ml-auto h-4 w-4" />
           ) : (
             <ChevronRight className="ml-auto h-4 w-4" />
-          )}
+          )} */}
+
         </Button>
 
-        {isCategoriesOpen && (
+        {/* {isCategoriesOpen && (
           <div className="ml-10 space-y-1">
             <Button
               variant="ghost"
@@ -145,7 +147,7 @@ export function SidebarNav({
               </Button>
             ))}
           </div>
-        )}
+        )} */}
 
         {navItems.map((item, index) => (
           <Button

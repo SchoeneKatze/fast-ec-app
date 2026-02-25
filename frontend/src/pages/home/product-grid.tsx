@@ -12,7 +12,7 @@ export function ProductGrid() {
         // const geoRes = await fetch("https://ipapi.co/json/");
         // const geoData = await geoRes.json();
         // const countryCode = geoData.country_code || "US";
-        const countryCode = "JP";
+        const countryCode = "CN";
 
         const productRes = await fetch(
           `${BACKEND_URL}/products/${countryCode}/productCards`,

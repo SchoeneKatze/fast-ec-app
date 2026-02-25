@@ -1,5 +1,5 @@
 from sqlalchemy import select, and_
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, aliased
 from .models import Currency, Product, Category, ProductImage, TaxSetting
 from decimal import ROUND_DOWN, ROUND_HALF_UP, Decimal
 import json, os
@@ -23,6 +23,9 @@ async def get_product_cards(country_code: str, db: Session):
     curr_code = COUNTRY_MAP.get(country_code, "USD")
     conf = CURRENCY_CONFIG.get(curr_code)
 
+    TargetCurr = aliased(Currency)
+    SourceCurr = aliased(Currency)
+
     # 1. 构造多表联合查询语句 (使用 label 统一字段名)
     stmt = (
         select(
@@ -31,9 +34,12 @@ async def get_product_cards(country_code: str, db: Session):
             TaxSetting.tax_rate.label("tax_rate"),
             TaxSetting.is_show_inclusive.label("is_show_inclusive"),
             ProductImage.image_url.label("image_url"),
-            Currency.exchange_rate.label("exchange_rate"),
+            TargetCurr.exchange_rate.label("target_rate"), 
+            SourceCurr.exchange_rate.label("source_rate"),
         )
         .join(Category, Product.category_id == Category.id)
+        .outerjoin(TargetCurr, TargetCurr.currency_code == curr_code)
+        .outerjoin(SourceCurr, SourceCurr.currency_code == Product.currency_code)
         .outerjoin(
             TaxSetting,
             and_(
@@ -41,7 +47,6 @@ async def get_product_cards(country_code: str, db: Session):
                 TaxSetting.country_code == country_code,
             ),
         )
-        .outerjoin(Currency, Currency.currency_code == curr_code)
         .outerjoin(
             ProductImage,
             (Product.product_id == ProductImage.product_id)
@@ -64,12 +69,11 @@ async def get_product_cards(country_code: str, db: Session):
     product_cards = []
     for row in rows:
         p = row.Product
+        
+        t_rate = Decimal(str(row.target_rate or "1.0"))
+        s_rate = Decimal(str(row.source_rate or "1.0"))
 
-        local_base_price: Decimal
-        if p.currency_code == curr_code:
-            local_base_price = p.base_price
-        else:
-            local_base_price = p.base_price * Decimal(str(row.exchange_rate or "1.0"))
+        local_base_price = (p.base_price / s_rate) * t_rate
 
         # 计算逻辑：基础价 * 折扣 * (1 + 税率)
         # 使用 or Decimal("0") 防止 tax_rate 为 None
