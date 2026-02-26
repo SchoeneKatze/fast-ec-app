@@ -112,3 +112,40 @@ id, user_id, recipient_name, phone, country_code, state, city, address_line, is_
  (关联 tax_settings)
 
 1. 币种（Currency）的确定逻辑币种的优先级通常如下（从高到低）：用户手动选择（最高优先级）：在你的网购网站顶栏，通常有一个切换币种的下拉菜单。一旦用户选择了（比如选了 JPY），我们就存入 localStorage 或数据库 users.default_currency。用户账号设置：如果用户登录了，且之前在个人中心设置过“偏好币种”，则以数据库为准。地理位置自动识别：如果用户是游客且没选过，后端通过 IP 地址 识别国家。如果是日本 IP，默认显示 JPY；如果是美国 IP，默认显示 USD。系统默认值（保底）：如果以上都失效，显示你网站的“本位币”（比如 USD）。2. 国家/地区（Country/Region）的确定逻辑国家决定了税率计算规则。它的确定逻辑更加严格：收货地址（Checkout 阶段，最高优先级）：这是最准确的。当用户进入购物车点击结账，填入了“东京都港区...”时，系统必须立即切换到日本的税率。IP 地理位置（浏览阶段）：在用户还没下单、只是逛网站时，后端通过 Cloudflare 或 GeoIP 数据库识别请求头里的 IP。逻辑示例：FastAPI 拿到请求 $\to$ 识别出是德国 IP $\to$ 根据 tax_settings 表找到德国税率（19%） $\to$ 实时计算并返回含税价格。Logto 用户资料：Logto 的用户信息中可能包含国家信息，但这通常不如 IP 或收货地址准确。
+
+-- 1. 订单主表
+CREATE TABLE orders (
+    id SERIAL PRIMARY KEY, -- MySQL 使用 id INT AUTO_INCREMENT PRIMARY KEY
+    order_no VARCHAR(20) NOT NULL UNIQUE,
+    user_id VARCHAR(50) NOT NULL,
+    currency VARCHAR(10) NOT NULL,
+    total_price DECIMAL(10, 2) NOT NULL,
+    status VARCHAR(20) DEFAULT 'PAID',
+    tracking_number VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_orders_user_id ON orders(user_id);
+CREATE INDEX idx_orders_created_at ON orders(created_at);
+
+-- 2. 订单明细表 (商品快照)
+CREATE TABLE order_items (
+    id SERIAL PRIMARY KEY,
+    order_id INT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    product_id VARCHAR(50) NOT NULL,
+    product_name VARCHAR(255) NOT NULL,
+    image_url VARCHAR(255),
+    quantity INT NOT NULL,
+    unit_price DECIMAL(10, 2) NOT NULL
+);
+CREATE INDEX idx_order_items_order_id ON order_items(order_id);
+
+-- 3. 退款申请表
+CREATE TABLE refund_requests (
+    id SERIAL PRIMARY KEY,
+    order_id INT NOT NULL UNIQUE REFERENCES orders(id) ON DELETE CASCADE,
+    reason VARCHAR(100) NOT NULL,
+    details TEXT,
+    status VARCHAR(20) DEFAULT 'PENDING',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

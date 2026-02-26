@@ -14,6 +14,8 @@ const CheckoutPage = () => {
   const selectedIdSet = new Set(ids.split(","));
   const navigate = useNavigate();
 
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+
   const {
     cartItems,
     refreshCart,
@@ -49,9 +51,45 @@ const CheckoutPage = () => {
     getUserId();
   }, [isAuthenticated, getIdTokenClaims, refreshCart]);
 
-  const navigateToOrderSubmit = () => {
-    navigate("/");
-    // navigate(`/orderSubmit/${method}`, { state: { method } });
+  const { getAccessToken } = useLogto();
+
+  const navigateToOrderSubmit = async () => {
+    try {
+      const token = await getAccessToken(); // 获取 Logto 的 JWT Token
+      
+      const orderPayload = {
+        user_id: userId,
+        currency: checkoutItems[0]?.symbol || "USD",
+        total_price: subtotal,
+        items: checkoutItems.map(item => ({
+          product_id: item.product_id,
+          product_name: item.title,
+          image_url: item.image_url,
+          quantity: item.quantity,
+          unit_price: item.final_price
+        }))
+      };
+
+      const response = await fetch(`${BACKEND_URL}/orders/create`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(orderPayload),
+      });
+
+      if (!response.ok) throw new Error("Payment failed");
+      const data = await response.json();
+
+      // 支付成功，假设 store 里有 removeItems 方法清空已购商品
+      // removeItems(Array.from(selectedIdSet)); 
+
+      navigate("/order-success", { state: { orderNo: data.order_no } });
+    } catch (error) {
+      console.error(error);
+      alert("Payment failed, please try again.");
+    }
   };
 
   const methodNames: Record<string, string> = {
@@ -142,7 +180,7 @@ const CheckoutPage = () => {
           className="w-full"
           onClick={() => window.history.back()}
         >
-          Back to Cart
+          Back to Home
         </Button>
       </div>
     </div>
