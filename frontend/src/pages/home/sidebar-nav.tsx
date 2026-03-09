@@ -26,7 +26,7 @@ import { useNavigate } from "react-router-dom";
 
 const navItems = [
   { icon: MapPin, label: "Saved Addresses", path: "/addresses", color: "text-muted-foreground" },
-  { icon: History, label: "Order History", path: "/orders", color: "text-muted-foreground" },
+  { icon: History, label: "Order History", path: "/order-history", color: "text-muted-foreground" },
   { icon: Settings, label: "Settings", path:"/settings", color: "text-muted-foreground" },
 ];
 

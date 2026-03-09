@@ -19,3 +19,15 @@ async def create_order(order_data: schemas.OrderCreate, db: Session = Depends(ge
         return {"status": "success", "order_no": new_order.order_no}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+    
+@router.get("/history")
+async def get_order_history(
+    user_id: str, 
+    year: int = None, 
+    month: int = None, 
+    start_date: str = None, 
+    end_date: str = None, 
+    db: Session = Depends(get_db)
+):
+    orders = service.get_order_history(db, user_id, year, month, start_date, end_date)
+    return {"orders": orders}

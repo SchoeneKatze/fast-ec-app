@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useLogto } from "@logto/react";
-import { ShoppingBag } from "lucide-react";
 
 export default function RefundPage() {
   const { orderNo } = useParams();
@@ -22,7 +21,7 @@ export default function RefundPage() {
 
     try {
       const token = await getAccessToken();
-      const response = await fetch(`/api/orders/${order.id}/refund`, {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/orders/refund/${order.id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -43,23 +42,9 @@ export default function RefundPage() {
     }
   };
 
-  const backToHome = () => navigate("/");
-
   return (
     <div className="max-w-2xl mx-auto p-6 mt-10 border rounded-lg shadow-sm">
-      {/* Fixed Header with Logo */}
-      <div className="flex items-center border-b bg-background">
-        <div
-          className="flex items-center gap-2 px-4 py-3 border-r w-fit shrink-0"
-          onClick={backToHome}
-          style={{ cursor: "pointer" }}
-        >
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <ShoppingBag className="w-5 h-5 text-primary-foreground" />
-          </div>
-          <span className="font-semibold">MyShop</span>
-        </div>
-      </div>
+
       <h2 className="text-xl font-bold mb-6">Apply Refund for {orderNo}</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>

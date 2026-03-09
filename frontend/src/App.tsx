@@ -8,6 +8,7 @@ import CheckoutPage from "./pages/checkout/checkout.tsx";
 import ContactSupportPage from "./pages/order/contact.tsx";
 import OrderSuccessPage from "./pages/order/success.tsx";
 import OrderHistoryPage from "./pages/order/history.tsx";
+import RefundPage from "./pages/order/refund.tsx";
 
 const App = () => {
   return (
@@ -22,6 +23,7 @@ const App = () => {
         <Route path="/order-history" element={<OrderHistoryPage />} />
         <Route path="/order-success" element={<OrderSuccessPage />} />
         <Route path="/contact-support/:orderNo" element={<ContactSupportPage />} />
+        <Route path="/refund/:orderNo" element={<RefundPage />} />
       </Routes>
     </BrowserRouter>
   );
