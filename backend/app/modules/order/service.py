@@ -1,11 +1,5 @@
-from sqlalchemy.orm import Session
-from datetime import datetime
-from . import models, schemas
-from app.modules.products.models import Product
-from app.modules.cart.models import CartItems as Cart
-
-from sqlalchemy import extract
-from datetime import datetime, timedelta
+def get_order_by_no(db: Session, order_no: str):
+    return db.query(models.Order).filter(models.Order.order_no == order_no).first()
 
 
 def create_order(db: Session, order: schemas.OrderCreate):

@@ -19,6 +19,7 @@ class Order(Base):
 
     items = relationship("OrderItem", back_populates="order")
     refund = relationship("RefundRequest", back_populates="order", uselist=False)
+    contacts = relationship("Contact", back_populates="order")
 
 class OrderItem(Base):
     __tablename__ = "order_items"

@@ -85,7 +85,7 @@ export default function SettingsPage() {
             setPhone(user_me.phone_no || "");
             if (user_me.birthday) setBirthday(new Date(user_me.birthday));
             setNotifications({
-              email: user_me.email_notifications ?? false, // 如果后端返回 null 则默认为 true
+              email: user_me.email_notifications ?? false, 
               // push: user_me.push.notifications ?? false,
               // sms: user_me.sms.notifications ?? false,
             });

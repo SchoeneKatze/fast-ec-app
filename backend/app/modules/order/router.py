@@ -20,14 +20,9 @@ async def create_order(order_data: schemas.OrderCreate, db: Session = Depends(ge
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     
-@router.get("/history")
-async def get_order_history(
-    user_id: str, 
-    year: int = None, 
-    month: int = None, 
-    start_date: str = None, 
-    end_date: str = None, 
-    db: Session = Depends(get_db)
-):
-    orders = service.get_order_history(db, user_id, year, month, start_date, end_date)
-    return {"orders": orders}
+@router.get("/order/{order_no}")
+async def get_order_by_no(order_no: str, db: Session = Depends(get_db)):
+    order = service.get_order_by_no(db, order_no)
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    return order

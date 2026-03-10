@@ -1,5 +1,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
+import { useLogto } from "@logto/react";
+import { useEffect } from "react";
+import { toast } from "@/components/ui/use-toast";
 import Home from "./pages/home/Home.tsx";
 import Callback from "./pages/callback/Callback.jsx";
 import SettingsPage from "./pages/settings/Settings.tsx";
@@ -11,6 +14,31 @@ import OrderHistoryPage from "./pages/order/history.tsx";
 import RefundPage from "./pages/order/refund.tsx";
 
 const App = () => {
+  const { isAuthenticated, getIdTokenClaims, signOut } = useLogto();
+
+  useEffect(() => {
+    const checkSession = async () => {
+      if (isAuthenticated) {
+        try {
+          const claims = await getIdTokenClaims();
+          if (claims && claims.exp * 1000 < Date.now()) {
+            // Token expired
+            signOut(window.location.origin);
+            toast({
+              title: "Session expired",
+              description: "Your session has expired. Please log in again.",
+              variant: "destructive",
+            });
+          }
+        } catch (error) {
+          console.error("Error checking token:", error);
+        }
+      }
+    };
+
+    checkSession();
+  }, [isAuthenticated, getIdTokenClaims, signOut]);
+
   return (
     <BrowserRouter>
       <Toaster />
