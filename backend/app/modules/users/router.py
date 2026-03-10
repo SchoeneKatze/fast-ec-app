@@ -22,6 +22,21 @@ def updateUser(update_user_info: schemas.UserUpdateRequest, db: Session = Depend
     print(f"update user infomation: {update_user_info}")
     return service.update_user_info(update_user_info, db)
 
+@router.post("/updateNotifications")
+async def update_notification_route(
+    notification_info: schemas.UpdateNotificationSetting, 
+    db: Session = Depends(get_db)
+):
+    updated_user = await service.update_notifications(notification_info, db)
+    return {
+        "status": "success", 
+        "settings": {
+            "email": updated_user.email_notifications,
+            "push": updated_user.push_notifications,
+            "sms": updated_user.sms_notifications
+        }
+    }
+
 @router.post("/verifyPassword")
 async def verifyPassword(password_data: schemas.PasswordUpdateData):
     print(f"verify password")

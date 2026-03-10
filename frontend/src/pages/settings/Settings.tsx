@@ -48,6 +48,8 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/use-toast";
 // import "./settings.css"
 
+// api document: https://openapi.logto.io/
+
 export default function SettingsPage() {
   const navigate = useNavigate();
   const { isAuthenticated, /*fetchUserInfo,*/ getIdTokenClaims } = useLogto();
@@ -67,10 +69,6 @@ export default function SettingsPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-  const handleNotificationChange = (key: string, value: boolean) => {
-    setNotifications((prev) => ({ ...prev, [key]: value }));
-  };
-
   useEffect(() => {
     const initData = async () => {
       try {
@@ -86,6 +84,11 @@ export default function SettingsPage() {
             setEmail(user_me.email || "");
             setPhone(user_me.phone_no || "");
             if (user_me.birthday) setBirthday(new Date(user_me.birthday));
+            setNotifications({
+              email: user_me.email_notifications ?? false, // 如果后端返回 null 则默认为 true
+              // push: user_me.push.notifications ?? false,
+              // sms: user_me.sms.notifications ?? false,
+            });
           }
         }
       } catch (err) {
@@ -124,8 +127,8 @@ export default function SettingsPage() {
 
             navigate("/settings");
             toast({
-            title: "User data updated successfully",
-          });
+              title: "User data updated successfully",
+            });
           }
         }
       } catch (error) {
@@ -135,6 +138,50 @@ export default function SettingsPage() {
         });
       }
     }
+  };
+
+  const handleNotificationChange = async (key: string, value: boolean) => {
+    // 1. 立即更新本地 UI 状态，保证流畅度
+    const updatedSettings = { ...notifications, [key]: value };
+    setNotifications(updatedSettings);
+
+    // 2. 发送给后端
+    try {
+      const claims = await getIdTokenClaims();
+      if (!claims?.sub) return;
+
+      const response = await fetch(`${BACKEND_URL}/auth/updateNotifications`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          logto_id: claims.sub,
+          email_notifications: updatedSettings.email,
+          // push_notifications: updatedSettings.push || false,
+          // sms_notifications: updatedSettings.sms || false,
+          push_notifications: false,
+          sms_notifications: false,
+        }),
+      });
+
+      if (response.ok) {
+        toast({ title: "Notification preferences updated" });
+      } else {
+        throw new Error("Failed to save");
+      }
+    } catch (err) {
+      console.error(err);
+      // 失败时回滚本地状态
+      setNotifications(notifications);
+      toast({
+        title: "Update failed",
+        description: "Could not sync notification settings.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleChangeEmail = () => {
+    window.location.href = `https://xtt3qa.logto.app/account/email`;
   };
 
   const updatePassword = async () => {
@@ -393,8 +440,8 @@ export default function SettingsPage() {
                         }
                       />
                     </div>
-                    {/* 
-                    <div className="flex items-center justify-between">
+
+                    {/* <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <Bell className="w-5 h-5 text-muted-foreground" />
                         <div>
@@ -461,17 +508,36 @@ export default function SettingsPage() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
+                  {/* <Label htmlFor="security-email">Change Email</Label> */}
+
+                  <div className="flex gap-2">
+                    {/* <Input
+                      id="security-email"
+                      type="email"
+                      value={email}
+                      disabled
+                      className="bg-muted"
+                    /> */}
+
+                    <Button
+                      variant="outline"
+                      onClick={handleChangeEmail}
+                      className="shrink-0"
+                    >
+                      Change Email
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Identity Verification Required
+                    <br />
+                    Current : <strong>{email}</strong>
+                  </p>
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="font-medium text-foreground">Password</h3>
+                  <h3 className="font-medium text-foreground">
+                    Change Password
+                  </h3>
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="currentPassword">Current Password</Label>

@@ -63,6 +63,24 @@ def update_user_info(update_user_info: schemas.UserUpdateRequest, db: Session):
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
     
+async def update_notifications(notification_info: schemas.UpdateNotificationSetting, db: Session):
+    user = db.query(models.User).filter(models.User.logto_id == notification_info.logto_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user.email_notifications = notification_info.email_notifications
+    user.push_notifications = notification_info.push_notifications
+    user.sms_notifications = notification_info.sms_notifications
+
+    try:
+        db.commit()
+        db.refresh(user)
+        return user
+    except Exception as e:
+        db.rollback()
+        print(f"Error updating notification: {e}")
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    
 async def verify_password(logto_id: str, currentPassword: str):
     print(f"DEBUG: LOGTO_ENDPOINT is '{LOGTO_ENDPOINT}'")
     async with httpx.AsyncClient() as client:
