@@ -18,6 +18,17 @@ interface OrderItem {
   unit_price: number;
 }
 
+interface AddressInfo {
+  tag: string;
+  recipient_name: string;
+  phone: string;
+  address_line: string;
+  city: string | null;
+  state: string | null;
+  country_code: string;
+  zip_code: string;
+}
+
 interface Order {
   id: number;
   orderNo: string;
@@ -26,6 +37,7 @@ interface Order {
   totalPrice: number;
   currency: string;
   items: OrderItem[];
+  address: AddressInfo| null;
 }
 
 interface RawOrderItem {
@@ -44,6 +56,7 @@ interface RawOrder {
   total_price: number;
   currency: string;
   items: RawOrderItem[];
+  address: AddressInfo | null;
 }
 
 export default function OrderHistoryPage() {
@@ -90,6 +103,7 @@ export default function OrderHistoryPage() {
         createdAt: o.created_at,
         status: o.status,
         totalPrice: o.total_price,
+        address: o.address,
         currency: o.currency || "$",
         items: o.items.map((i) => ({
           product_id: i.product_id,
@@ -254,11 +268,22 @@ export default function OrderHistoryPage() {
                       <p className="text-xs text-muted-foreground">
                         Placed on {new Date(order.createdAt).toLocaleString()}
                       </p>
+                      {order.address && (
+                        <div className="mt-2 flex items-center gap-2">
+                          <span
+                            className="text-[10px] font-bold uppercase px-2 py-0.5 bg-slate-200 text-slate-600 rounded cursor-pointer"
+                            title={`${order.address.recipient_name} (${order.address.phone})\n${order.address.address_line}, ${order.address.city || ""}, ${order.address.country_code}`}
+                          >
+                            {order.address.tag}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            ( ←Hover to see details )
+                          </span>
+                        </div>
+                      )}
                     </div>
                     <div className="text-right flex flex-col justify-center">
-                      <span>
-                        {getStatusBadge(order.status)}
-                      </span>
+                      <span>{getStatusBadge(order.status)}</span>
                       <p className="text-xl font-bold">
                         {order.currency}
                         {order.totalPrice}

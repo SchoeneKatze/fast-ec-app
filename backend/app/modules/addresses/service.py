@@ -20,6 +20,7 @@ def add_address(address_data: schemas.ShippingAddressUpdate, db: Session):
         country_code=address_data.country_code,
         zip_code=address_data.zip_code,
         state=address_data.state,
+        city=address_data.city,
         address_line=address_data.address_line,
     )
     db.add(new_address)
@@ -46,6 +47,7 @@ def update_address(address_data: schemas.ShippingAddressUpdate, db: Session):
     address.country_code = address_data.country_code
     address.zip_code = address_data.zip_code
     address.state = address_data.state
+    address.city=address_data.city,
     address.address_line = address_data.address_line
     address.is_default = address_data.is_default
     

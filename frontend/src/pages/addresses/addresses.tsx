@@ -32,6 +32,8 @@ interface AddressItem {
   phone: string;
   country_code: string;
   zip_code: string;
+  state?: string;
+  city?: string;
   address_line: string;
   is_default: boolean;
   isEditing?: boolean;
@@ -103,6 +105,8 @@ export default function AddressManagement() {
       phone: "",
       country_code: "JP",
       zip_code: "",
+      state: "",
+      city: "",
       address_line: "",
       is_default: addresses.length === 0, // 第一条自动设为默认
       isEditing: true,
@@ -289,6 +293,18 @@ export default function AddressManagement() {
                     readOnly={!addr.isEditing}
                     onChange={(e) =>
                       handleChange(addr.id, "zip_code", e.target.value)
+                    }
+                    className={addr.isEditing ? "" : "bg-gray-100"}
+                  />
+                </div>
+
+                <div className="flex flex-col">
+                  <Label>City</Label>
+                  <Input
+                    value={addr.city || ""}
+                    readOnly={!addr.isEditing}
+                    onChange={(e) =>
+                      handleChange(addr.id, "city", e.target.value)
                     }
                     className={addr.isEditing ? "" : "bg-gray-100"}
                   />

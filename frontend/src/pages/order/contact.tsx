@@ -2,6 +2,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useLogto } from "@logto/react";
 import { useState } from "react";
+import { toast } from "@/components/ui/use-toast";
 
 const ContactSupportPage = () => {
   const { orderNo } = useParams();
@@ -27,18 +28,23 @@ const ContactSupportPage = () => {
             ticket_type: "CONTACT",
             order_id: orderNo,
             user_id: userId,
-            reason: "General Inquiry", // 客服页面默认理由
+            reason: "General Inquiry", 
             details: details,
           }),
         },
       );
 
-      if (!response.ok) throw new Error("发送失败");
+      if (!response.ok) throw new Error("Submit failed");
 
-      alert("您的消息已发送，客服将尽快回复。");
+      toast({
+        title: "Submit Successfully",
+      });
       navigate(-1);
     } catch (error) {
-      alert("发送失败，请检查网络连接。" + error);
+      toast({
+        title: "Submit Failed",
+      });
+      console.error(error);
     } finally {
       setIsSubmitting(false);
     }
@@ -64,7 +70,11 @@ const ContactSupportPage = () => {
           <Button type="button" variant="ghost" onClick={() => navigate(-1)}>
             Cancel
           </Button>
-          <Button type="submit" disabled={isSubmitting} className="bg-slate-900 text-white font-black uppercase text-xs px-8">
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="bg-slate-900 text-white font-black uppercase text-xs px-8"
+          >
             {isSubmitting ? "Sending..." : "Send"}
           </Button>
         </div>

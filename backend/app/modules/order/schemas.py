@@ -17,6 +17,7 @@ class OrderItemCreate(BaseModel):
 
 class OrderCreate(BaseModel):
     user_id: str
+    address_id: int
     currency: str
     total_price: float
     items: List[OrderItemCreate]
@@ -33,3 +34,4 @@ class TicketCreate(BaseModel):
     user_id: str
     reason: Optional[str] = None
     details: str
+    status: Optional[str] = "PENDING"

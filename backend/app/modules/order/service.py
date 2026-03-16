@@ -5,6 +5,7 @@ from app.modules.products.models import Product
 from app.modules.cart.models import CartItems as Cart
 from .models import SupportTicket
 from .schemas import TicketCreate
+from app.modules.addresses.models import ShippingAddress as Address
 
 from sqlalchemy import extract
 from datetime import datetime, timedelta
@@ -27,6 +28,7 @@ def create_order(db: Session, order: schemas.OrderCreate):
             user_id=order.user_id,
             currency=order.currency,
             total_price=order.total_price,
+            address_id=order.address_id,
             status="PAID",  # 模拟直接支付成功
         )
         db.add(db_order)
@@ -82,7 +84,11 @@ def get_order_history(
     end_date: str = None,
 ):
     # 1. 基础查询
-    query = db.query(models.Order).filter(models.Order.user_id == user_id)
+    query = (
+        db.query(models.Order, Address)
+        .outerjoin(Address, models.Order.address_id == Address.id)
+        .filter(models.Order.user_id == user_id)
+    )
 
     # 2. 逻辑判断：优先处理日期区间筛选 (start_date, end_date)
     if start_date:
@@ -103,24 +109,25 @@ def get_order_history(
             query = query.filter(extract("month", models.Order.created_at) == month)
 
     # 4. 执行查询并排序
-    orders = query.order_by(models.Order.created_at.desc()).all()
-
+    results = query.order_by(models.Order.created_at.desc()).all()
+    
     # 5. 格式化输出 (保持和你之前的返回结构一致)
     order_list = []
-    for order in orders:
+    for order, addr in results:
         latest_refund_ticket = (
             db.query(models.SupportTicket)
             .filter(
-                models.SupportTicket.order_id == order.order_no, 
-                models.SupportTicket.ticket_type == 'REFUND'
+                models.SupportTicket.order_id == order.order_no,
+                models.SupportTicket.ticket_type == "REFUND",
             )
             .order_by(models.SupportTicket.created_at.desc())
             .first()
         )
-        
+
         display_status = order.status
         if latest_refund_ticket:
-            display_status = f"REFUND_{latest_refund_ticket.status}"
+            ticket_status = latest_refund_ticket.status.upper()
+            display_status = f"REFUND_{ticket_status}"
 
         # 这里建议使用 SQL 的 join 提高性能，但先按你原来的逻辑跑通
         items = (
@@ -138,6 +145,19 @@ def get_order_history(
             for item in items
         ]
 
+        address_info = None
+        if addr:
+            address_info = {
+                "recipient_name": addr.recipient_name,
+                "phone": addr.phone,
+                "address_line": addr.address_line,
+                "city": addr.city,
+                "state": addr.state,
+                "country_code": addr.country_code,
+                "zip_code": addr.zip_code,
+                "tag": addr.tag,
+            }
+
         order_list.append(
             {
                 "id": order.id,
@@ -147,6 +167,7 @@ def get_order_history(
                 "status": display_status,
                 "currency": order.currency,
                 "items": item_list,
+                "address": address_info,  # <--- 将地址信息传回前端
             }
         )
 
@@ -154,8 +175,8 @@ def get_order_history(
 
 
 def create_ticket(db: Session, ticket_in: schemas.TicketCreate):
-        db_obj = models.SupportTicket(**ticket_in.model_dump())
-        db.add(db_obj)
-        db.commit()
-        db.refresh(db_obj)
-        return db_obj
+    db_obj = models.SupportTicket(**ticket_in.model_dump())
+    db.add(db_obj)
+    db.commit()
+    db.refresh(db_obj)
+    return db_obj

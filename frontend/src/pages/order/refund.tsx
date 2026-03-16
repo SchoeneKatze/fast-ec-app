@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useLogto } from "@logto/react";
+import { toast } from "@/components/ui/use-toast";
 
 export default function RefundPage() {
   const { orderNo } = useParams();
@@ -35,13 +36,17 @@ export default function RefundPage() {
         },
       );
 
-      if (!response.ok) throw new Error("提交失败");
+      if (!response.ok) throw new Error("Submit failed");
 
-      alert("退款申请已提交，请耐心等待后台审核。");
+      toast({
+        title: "Submit Successfully",
+      });
       navigate("/order-history");
     } catch (error) {
       console.error(error);
-      alert("提交过程中出错，请稍后重试。");
+      toast({
+        title: "Submit Failed",
+      });
     } finally {
       setIsSubmitting(false);
     }

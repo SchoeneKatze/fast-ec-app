@@ -22,6 +22,7 @@ class Order(Base):
     user_id = Column(String(50), index=True)
     currency = Column(String(10))
     total_price = Column(Numeric(10, 2))
+    address_id = Column(Integer, nullable=True)
     status = Column(String(20), default="PAID")  # PAID, SHIPPED, COMPLETED
     tracking_number = Column(String(50), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
