@@ -128,6 +128,41 @@ export default function OrderHistoryPage() {
     return diffDays <= REFUND_WINDOW_DAYS;
   };
 
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "PAID":
+        return (
+          <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold">
+            Paid
+          </span>
+        );
+      case "REFUND_PENDING":
+        return (
+          <span className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-bold">
+            Refund applied
+          </span>
+        );
+      case "REFUND_APPROVED":
+        return (
+          <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold">
+            Refunded
+          </span>
+        );
+      case "REFUND_REJECTED":
+        return (
+          <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">
+            Refund Denied
+          </span>
+        );
+      default:
+        return (
+          <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-xs font-bold">
+            {status}
+          </span>
+        );
+    }
+  };
+
   const backToHome = () => navigate("/");
 
   return (
@@ -221,8 +256,8 @@ export default function OrderHistoryPage() {
                       </p>
                     </div>
                     <div className="text-right flex flex-col justify-center">
-                      <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold mb-1 w-fit ml-auto">
-                        {order.status}
+                      <span>
+                        {getStatusBadge(order.status)}
                       </span>
                       <p className="text-xl font-bold">
                         {order.currency}
@@ -268,7 +303,12 @@ export default function OrderHistoryPage() {
                     >
                       Contact Support
                     </Button>
-                    {checkIsRefundable(order.createdAt) ? (
+                    {/* 操作按钮区域 */}
+                    {order.status.startsWith("REFUND") ? (
+                      <Button variant="secondary" size="sm" disabled>
+                        Refund Requested
+                      </Button>
+                    ) : checkIsRefundable(order.createdAt) ? (
                       <Button
                         variant="outline"
                         size="sm"
@@ -281,12 +321,7 @@ export default function OrderHistoryPage() {
                         Apply Refund
                       </Button>
                     ) : (
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        disabled
-                        title="Refund window closed"
-                      >
+                      <Button variant="secondary" size="sm" disabled>
                         Refund Expired
                       </Button>
                     )}
