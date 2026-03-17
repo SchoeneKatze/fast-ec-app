@@ -1,0 +1,53 @@
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: a12345
+      MYSQL_DATABASE: fastec
+      MYSQL_USER: fast-ec-admin
+      MYSQL_PASSWORD: a12345
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init_db:/docker-entrypoint-initdb.d
+    ports:
+      - "3307:3306"
+    healthcheck: 
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "fast-ec-admin", "-pa12345"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app-backend:
+    build: ./fast-ec-app/backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: mysql+pymysql://fast-ec-admin:a12345@db:3306/fastec
+    depends_on:
+      - db
+
+  app-frontend:
+    build: ./fast-ec-app/frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - app-backend
+
+  admin-backend:
+    build: ./fast-ec-admin/backend
+    ports:
+      - "8002:8002"
+    environment:
+      DATABASE_URL: mysql+pymysql://fast-ec-admin:a12345@db:3306/fastec
+    depends_on:
+      - db
+
+  admin-frontend:
+    build: ./fast-ec-admin/frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - admin-backend
+
+volumes:
+  mysql_data:
