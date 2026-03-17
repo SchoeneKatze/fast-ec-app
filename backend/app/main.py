@@ -1,0 +1,32 @@
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+from app.modules.users.router import router as user_router
+from app.modules.addresses.router import router as address_router
+from app.modules.products.router import router as products_router
+from app.modules.cart.router import router as cart_router
+from app.modules.order.router import router as order_router
+
+app = FastAPI()
+origins = [
+    os.getenv("FRONT_URL_LOCAL"),
+    os.getenv("FRONT_URL"),
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"], # allow all methods like POST, GET
+    allow_headers=["*"], # allow all request headers
+)
+
+app.include_router(user_router)
+app.include_router(address_router)
+app.include_router(products_router)
+app.include_router(cart_router)
+app.include_router(order_router)

@@ -1,0 +1,14 @@
+fastapi==0.115.8
+uvicorn[standard]>=0.20.0
+pydantic[email]==2.10.6
+pydantic_settings==2.7.1
+sqlalchemy==2.0.37
+cryptography>=42.0.0
+passlib[bcrypt]>=1.7.4
+python-multipart>=0.0.7
+pymysql>=1.1.2
+python-jose[cryptography]>=3.3.0
+python-dotenv==1.2.2 
+requests==2.32.5
+httpx==0.28.1
+pycountry_convert==0.7.2

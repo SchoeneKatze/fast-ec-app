@@ -1,0 +1,42 @@
+{
+  "CNY": {
+    "country_code": ["CN"],
+    "symbol": "¥",
+    "name": "人民币",
+    "decimal_places": 2,
+    "rounding_mode": "HALF_UP",
+    "format": "symbol_first"
+  },
+  "JPY": {
+    "country_code": ["JP"],
+    "symbol": "¥",
+    "name": "日本円",
+    "decimal_places": 0,
+    "rounding_mode": "DOWN",
+    "format": "symbol_first"
+  },
+  "KRW": {
+    "country_code": ["KR"],
+    "symbol": "₩",
+    "name": "대한민국 원",
+    "decimal_places": 0,
+    "rounding_mode": "DOWN",
+    "format": "symbol_first"
+  },
+  "USD": {
+    "country_code": ["US"],
+    "symbol": "$",
+    "name": "US Dollar",
+    "decimal_places": 2,
+    "rounding_mode": "HALF_UP",
+    "format": "symbol_first"
+  },
+  "EUR": {
+    "country_code": ["EU", "DE", "FR", "IT", "ES", "NL", "BE", "AT", "FI", "IE", "PT", "GR", "CY", "LU", "MT", "SI", "SK"],
+    "symbol": "€",
+    "name": "Euro",
+    "decimal_places": 2,
+    "rounding_mode": "HALF_UP",
+    "format": "symbol_first"
+  }
+}
